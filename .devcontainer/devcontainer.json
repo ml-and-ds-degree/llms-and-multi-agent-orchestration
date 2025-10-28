@@ -38,6 +38,7 @@
     ],
     "postCreateCommand": {
         "installPython": "uv python install 3.13",
+        "installReflexTool": "uv tool install reflex",
         "setupOllama": "nohup ollama serve > /tmp/ollama-serve.log 2>&1 & sleep 5 && ollama pull llama3.2:latest",
         "welcome": "echo 'Development container ready! Python 3.13 and Ollama are configured.'"
     },
