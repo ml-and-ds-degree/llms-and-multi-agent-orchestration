@@ -12,7 +12,14 @@ RUN apt-get update && apt-get install -y \
     build-essential \
     python3 \
     python3-pip \
+    zsh \
     && rm -rf /var/lib/apt/lists/*
+
+# Install Oh My Zsh
+RUN sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+
+# Set zsh as default shell
+ENV SHELL=/bin/zsh
 
 # Install UV by Astral
 # UV is a fast Python package installer and resolver
@@ -34,6 +41,3 @@ ENV DEBIAN_FRONTEND=dialog
 
 # Set working directory
 WORKDIR /workspace
-
-# Keep container running
-CMD ["/bin/bash"]

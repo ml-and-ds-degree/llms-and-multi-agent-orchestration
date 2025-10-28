@@ -11,6 +11,7 @@ This directory contains the configuration for the development container for this
 ## Features
 
 - Python 3 pre-installed
+- Zsh shell with Oh My Zsh for enhanced terminal experience
 - UV package manager for fast Python dependency management
 - Ollama for running LLMs locally
 - Llama 3.2 model automatically downloaded in the background on container creation
