@@ -17,7 +17,7 @@ RUN apt-get update && apt-get install -y \
 # Install UV by Astral
 # UV is a fast Python package installer and resolver
 # Using official installation script with specific version for reproducibility
-ENV UV_VERSION=0.4.30
+ENV UV_VERSION=0.9.5
 RUN curl -LsSf https://astral.sh/uv/${UV_VERSION}/install.sh | sh
 
 # Add UV to PATH

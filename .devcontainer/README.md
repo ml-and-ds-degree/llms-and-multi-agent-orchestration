@@ -13,6 +13,7 @@ This directory contains the configuration for the development container for this
 - Python 3 pre-installed
 - UV package manager for fast Python dependency management
 - Ollama for running LLMs locally
+- Llama 3.2 model automatically downloaded in the background on container creation
 - Port 11434 forwarded for Ollama API access
 - Git and build-essential tools included
 
@@ -43,14 +44,19 @@ uv pip install -r requirements.txt
 
 ### Using Ollama
 
-Ollama is installed and ready to use. To start using it:
+Ollama is installed and ready to use. The `llama3.2:latest` model is automatically downloaded in the background when the container starts (check `/tmp/ollama-pull.log` for progress).
+
+To use Ollama:
 
 ```bash
-# Pull a model (e.g., llama2)
-ollama pull llama2
+# Check download progress
+tail -f /tmp/ollama-pull.log
 
-# Run a model
-ollama run llama2
+# Run the llama3.2 model (once download completes)
+ollama run llama3.2:latest
+
+# Pull additional models
+ollama pull llama2
 
 # List installed models
 ollama list
@@ -65,5 +71,8 @@ The Ollama API is available on port 11434, which is forwarded from the container
   - The `UV_SYSTEM_PYTHON` environment variable is set to allow UV to work with system Python
 - The working directory is set to `/workspace`
 - All tools are pre-installed and ready to use upon container creation
-- UV is pinned to version 0.4.30 for reproducibility
+- UV is pinned to version 0.9.5 for reproducibility
 - Ollama installs the latest stable version (version pinning not supported by the official installer)
+- The `llama3.2:latest` model is automatically pulled in the background after container creation to save time
+  - Check `/tmp/ollama-pull.log` to monitor the download progress
+  - The download happens non-blocking so you can start working immediately

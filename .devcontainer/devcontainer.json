@@ -21,7 +21,7 @@
     "forwardPorts": [
         11434
     ],
-    "postCreateCommand": "echo 'Development container ready! UV and Ollama are installed.'",
+    "postCreateCommand": "echo 'Development container ready! UV and Ollama are installed.' && nohup ollama pull llama3.2:latest > /tmp/ollama-pull.log 2>&1 &",
     "remoteUser": "root",
     "containerEnv": {
         "UV_SYSTEM_PYTHON": "1"
