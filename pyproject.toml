@@ -1,0 +1,10 @@
+[project]
+name = "llms-and-multi-agent-orchestration"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "pydantic-ai[ollama]>=1.7.0",
+    "reflex>=0.8.17",
+]
