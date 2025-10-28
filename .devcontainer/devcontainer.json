@@ -7,7 +7,7 @@
     "customizations": {
         "vscode": {
             "settings": {
-                "terminal.integrated.shell.linux": "/bin/bash",
+                "terminal.integrated.defaultProfile.linux": "bash",
                 "python.defaultInterpreterPath": "/usr/bin/python3"
             },
             "extensions": [
@@ -22,5 +22,8 @@
         11434
     ],
     "postCreateCommand": "echo 'Development container ready! UV and Ollama are installed.'",
-    "remoteUser": "root"
+    "remoteUser": "root",
+    "containerEnv": {
+        "UV_SYSTEM_PYTHON": "1"
+    }
 }

@@ -16,12 +16,17 @@ RUN apt-get update && apt-get install -y \
 
 # Install UV by Astral
 # UV is a fast Python package installer and resolver
-RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+# Using official installation script with specific version for reproducibility
+ENV UV_VERSION=0.4.30
+RUN curl -LsSf https://astral.sh/uv/${UV_VERSION}/install.sh | sh
 
 # Add UV to PATH
 ENV PATH="/root/.cargo/bin:${PATH}"
 
 # Install Ollama
+# Using official installation script
+# Note: Ollama doesn't provide version-specific installation URLs in their script
+# The script installs the latest stable version
 RUN curl -fsSL https://ollama.com/install.sh | sh
 
 # Switch back to dialog for any ad-hoc use of apt-get

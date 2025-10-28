@@ -60,6 +60,10 @@ The Ollama API is available on port 11434, which is forwarded from the container
 
 ## Notes
 
-- The container runs as root user for maximum compatibility
+- The container runs as root user for maximum compatibility with dev tools and to avoid permission issues
+  - This is acceptable for development containers but should be changed for production use
+  - The `UV_SYSTEM_PYTHON` environment variable is set to allow UV to work with system Python
 - The working directory is set to `/workspace`
 - All tools are pre-installed and ready to use upon container creation
+- UV is pinned to version 0.4.30 for reproducibility
+- Ollama installs the latest stable version (version pinning not supported by the official installer)
