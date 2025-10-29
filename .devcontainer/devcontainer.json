@@ -8,7 +8,7 @@
         "vscode": {
             "settings": {
                 "terminal.integrated.defaultProfile.linux": "zsh",
-                "python.defaultInterpreterPath": "/usr/bin/python3",
+                "python.defaultInterpreterPath": "../.venv/bin/python",
                 "terminal.integrated.stickyScroll.enabled": false
             },
             "extensions": [
@@ -18,7 +18,8 @@
                 "openai.chatgpt",
                 "docker.docker",
                 "ms-azuretools.vscode-containers",
-                "tamasfe.even-better-toml"
+                "tamasfe.even-better-toml",
+                "christian-kohler.path-intellisense"
             ]
         }
     },
@@ -39,8 +40,11 @@
     "postCreateCommand": {
         "installPython": "uv python install 3.13",
         "installReflexTool": "uv tool install reflex",
-        "setupOllama": "nohup ollama serve > /tmp/ollama-serve.log 2>&1 & sleep 5 && ollama pull llama3.2:latest",
-        "welcome": "echo 'Development container ready! Python 3.13 and Ollama are configured.'"
+        "installSpecKit": "uv tool install specify-cli --from git+https://github.com/github/spec-kit.git",
+        "setupNodeSymlink": "ln -sf /root/.bun/bin/bun /usr/bin/node",
+        "installCodex": "bun install -g @openai/codex",
+        "setupOllama": "nohup ollama serve > /tmp/ollama-serve.log 2>&1 & sleep 5"
     },
+    "postStartCommand": "ollama pull llama3.2:latest && echo 'Development container ready!'",
     "remoteUser": "root"
 }

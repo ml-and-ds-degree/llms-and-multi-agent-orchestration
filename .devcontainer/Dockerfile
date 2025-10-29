@@ -13,6 +13,7 @@ RUN apt-get update && apt-get install -y \
     python3 \
     python3-pip \
     zsh \
+    unzip \
     && rm -rf /var/lib/apt/lists/*
 
 # Set zsh as default shell
@@ -26,6 +27,15 @@ RUN curl -LsSf https://astral.sh/uv/${UV_VERSION}/install.sh | sh
 
 # Add UV to PATH
 ENV PATH="/root/.cargo/bin:${PATH}"
+
+# Install Bun
+# Bun is a fast JavaScript runtime, bundler, test runner, and package manager
+# Using official installation script with specific version for reproducibility
+ENV BUN_VERSION=1.3.1
+RUN curl -fsSL https://bun.sh/install | bash -s "bun-v${BUN_VERSION}"
+
+# Add Bun to PATH
+ENV PATH="/root/.bun/bin:${PATH}"
 
 # Install Ollama
 # Using official installation script
