@@ -26,7 +26,7 @@ class SettingsState(rx.State):
 
 class State(rx.State):
     # The current question being asked.
-    question: str
+    question: str = ""
 
     # Whether the app is processing a question.
     processing: bool = False
