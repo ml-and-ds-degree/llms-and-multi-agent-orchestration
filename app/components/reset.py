@@ -13,7 +13,7 @@ def reset() -> rx.Component:
                 stroke_width="1.5",
                 class_name="!text-slate-10",
             ),
-            class_name="hover:bg-slate-3 p-2 rounded-xl transition-colors cursor-pointer",
+            class_name="p-2 rounded-xl cursor-pointer",
             on_click=State.clear_chat,
         ),
         side="bottom",

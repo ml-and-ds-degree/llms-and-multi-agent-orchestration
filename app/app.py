@@ -33,7 +33,7 @@ def index() -> rx.Component:
             action_bar(),
             class_name="relative flex flex-col justify-between gap-20 mx-auto px-6 pt-16 lg:pt-6 pb-6 max-w-4xl h-screen",
         ),
-        accent_color=SettingsState.color,
+        accent_color="violet",
     )
 
 

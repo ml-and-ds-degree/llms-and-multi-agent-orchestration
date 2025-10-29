@@ -9,15 +9,8 @@ os.environ["OLLAMA_BASE_URL"] = "http://localhost:11434/v1"
 
 
 class SettingsState(rx.State):
-    # The accent color for the app
-    color: str = "violet"
-
     # The font family for the app
     font_family: str = "Poppins"
-
-    @rx.event
-    def set_color(self, color: str):
-        self.color = color
 
     @rx.event
     def set_font_family(self, font_family: str):
@@ -26,7 +19,7 @@ class SettingsState(rx.State):
 
 class State(rx.State):
     # The current question being asked.
-    question: str
+    question: str = ""
 
     # Whether the app is processing a question.
     processing: bool = False

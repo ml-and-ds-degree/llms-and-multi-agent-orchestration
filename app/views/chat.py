@@ -1,6 +1,5 @@
 import reflex as rx
 
-from app.components.badge import made_with_reflex
 from app.state import State
 
 
@@ -60,30 +59,41 @@ def action_bar() -> rx.Component:
         rx.box(
             rx.el.input(
                 placeholder="Ask anything",
-                on_blur=State.set_question,
+                value=State.question,
+                on_change=State.set_question,
+                on_key_down=State.handle_key_down,
                 id="input1",
-                class_name="box-border bg-slate-3 px-4 py-2 pr-14 rounded-full w-full outline-none focus:outline-accent-10 h-[48px] text-slate-12 placeholder:text-slate-9",
+                class_name=(
+                    "box-border bg-slate-2 px-4 py-2 rounded-full w-full outline-none focus:outline-[#6E56CF] "
+                    "h-[48px] text-slate-12 placeholder:text-slate-9 border border-slate-5 focus:border-[#6E56CF] "
+                    "shadow-sm focus:shadow-md transition-colors transition-shadow"
+                ),
             ),
-            rx.el.button(
+            rx.button(
                 rx.cond(
                     State.processing,
                     rx.icon(
                         tag="loader-circle",
-                        size=19,
-                        color="white",
+                        size=18,
                         class_name="animate-spin",
                     ),
-                    rx.icon(tag="arrow-up", size=19, color="white"),
+                    rx.hstack(
+                        rx.icon(tag="send", size=18),
+                        rx.text("Send", class_name="text-base font-semibold"),
+                        spacing="2",
+                        class_name="items-center",
+                    ),
                 ),
                 on_click=[State.answer, rx.set_value("input1", "")],
-                class_name="top-1/2 right-4 absolute bg-accent-9 hover:bg-accent-10 disabled:hover:bg-accent-9 opacity-65 disabled:opacity-50 p-1.5 rounded-full transition-colors -translate-y-1/2 cursor-pointer disabled:cursor-default",
+                class_name=(
+                    "bg-[#6E56CF] hover:bg-[#5A46B8] disabled:hover:bg-[#6E56CF] text-white "
+                    "px-6 h-[48px] rounded-full transition-colors flex items-center justify-center "
+                    "cursor-pointer disabled:cursor-default shadow-md shadow-[#6E56CF]/40 disabled:opacity-60"
+                ),
                 disabled=rx.cond(
                     State.processing | (State.question == ""), True, False
                 ),
             ),
-            class_name="relative w-full",
+            class_name="flex flex-row gap-3 w-full",
         ),
-        # Made with Reflex link
-        made_with_reflex(),
-        class_name="flex flex-col justify-center items-center gap-6 w-full",
     )
