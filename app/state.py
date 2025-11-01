@@ -1,4 +1,3 @@
-import asyncio
 import os
 import uuid
 from dataclasses import dataclass, field
@@ -189,21 +188,23 @@ class State(rx.State):
 
             async with agent.run_stream(full_prompt) as result:
                 # Stream text as it comes in from Ollama
-                async for text_chunk in result.stream_text(delta=False, debounce_by=0.05):
+                async for text_chunk in result.stream_text(
+                    delta=False, debounce_by=0.05
+                ):
                     # text_chunk contains the full text so far (delta=False)
                     accumulated_response = text_chunk
 
-                    # Update the last message with streaming response
+                    # Update the last message with streaming response (brief lock)
                     async with self:
                         for session in self.chat_sessions:
                             if session.id == session_id:
                                 if session.messages:
                                     # Update the AI response in place
-                                    session.messages[-1] = (question, accumulated_response)
+                                    session.messages[-1] = (
+                                        question,
+                                        accumulated_response,
+                                    )
                                 break
-
-                    # Small delay to prevent overwhelming the UI
-                    await asyncio.sleep(0.01)
 
         except Exception as e:
             # Handle errors gracefully
