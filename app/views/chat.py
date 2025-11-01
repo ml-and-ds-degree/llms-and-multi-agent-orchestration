@@ -5,41 +5,137 @@ from app.state import State
 
 def qa(question: str, answer: str) -> rx.Component:
     return rx.box(
-        # Question
+        # User question bubble
         rx.box(
             rx.markdown(
                 question,
                 class_name="[&>p]:!my-2.5",
             ),
-            class_name="relative bg-slate-3 px-5 rounded-3xl max-w-[70%] text-slate-12 self-end",
+            padding="0.65rem 1rem",
+            border_radius="1.25rem 1.25rem 0.25rem 1.25rem",
+            max_width="70%",
+            background=rx.color("blue", 9),
+            color=rx.color("gray", 1),
+            box_shadow="0 2px 8px rgba(0, 0, 0, 0.08)",
+            align_self="flex-end",
+            transition="all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+            _hover={
+                "box_shadow": "0 4px 12px rgba(0, 0, 0, 0.12)",
+                "transform": "translateY(-1px)",
+            },
+            word_break="break-word",
         ),
-        # Answer
+        # Assistant answer with avatar
         rx.box(
+            # Avatar
             rx.box(
                 rx.image(
                     src="llama.svg",
-                    class_name="h-6" + rx.cond(State.processing, " animate-pulse", ""),
+                    height="1.5rem",
+                    class_name=rx.cond(State.processing, " animate-pulse", ""),
                 ),
+                flex_shrink="0",
+                margin_top="0.25rem",
             ),
+            # Answer bubble
             rx.box(
-                rx.markdown(
-                    answer,
-                    class_name="[&>p]:!my-2.5",
-                ),
-                rx.box(
-                    rx.el.button(
-                        rx.icon(tag="copy", size=18),
-                        class_name="p-1 text-slate-10 hover:text-slate-11 transform transition-colors cursor-pointer",
-                        on_click=[rx.set_clipboard(answer), rx.toast("Copied!")],
-                        title="Copy",
+                # Show animated dots when answer is empty (thinking), otherwise show the answer
+                rx.cond(
+                    answer == "",
+                    # Animated typing dots
+                    rx.html(
+                        """
+                        <style>
+                            @keyframes dot-bounce {
+                                0%, 80%, 100% { opacity: 0.3; transform: translateY(0); }
+                                40% { opacity: 1; transform: translateY(-4px); }
+                            }
+                            .typing-dots {
+                                display: flex;
+                                align-items: center;
+                                gap: 3px;
+                                height: 20px;
+                            }
+                            .typing-dot {
+                                width: 6px;
+                                height: 6px;
+                                border-radius: 50%;
+                                background-color: currentColor;
+                                animation: dot-bounce 1.4s infinite ease-in-out;
+                            }
+                            .typing-dot:nth-child(1) { animation-delay: 0s; }
+                            .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+                            .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+                        </style>
+                        <div class="typing-dots">
+                            <div class="typing-dot"></div>
+                            <div class="typing-dot"></div>
+                            <div class="typing-dot"></div>
+                        </div>
+                        """
                     ),
-                    class_name="-bottom-9 left-5 absolute opacity-0 group-hover:opacity-100 transition-opacity",
+                    # Actual answer content
+                    rx.markdown(
+                        answer,
+                        class_name="[&>p]:!my-2.5",
+                    ),
                 ),
-                class_name="relative bg-accent-4 px-5 rounded-3xl max-w-[70%] text-slate-12 self-start",
+                # Copy button (only show when answer is not empty)
+                rx.cond(
+                    answer != "",
+                    rx.box(
+                        rx.el.button(
+                            rx.icon(tag="copy", size=18),
+                            on_click=[rx.set_clipboard(answer), rx.toast("Copied!")],
+                            title="Copy message",
+                            style={
+                                "padding": "0.25rem",
+                                "color": rx.color("gray", 10),
+                                "background": "transparent",
+                                "border": "none",
+                                "cursor": "pointer",
+                                "border_radius": "0.25rem",
+                                "transition": "all 0.15s ease",
+                            },
+                            _hover={
+                                "color": rx.color("gray", 12),
+                                "background": rx.color("gray", 4),
+                            },
+                        ),
+                        position="absolute",
+                        bottom="-2.25rem",
+                        left="1.25rem",
+                        opacity="0",
+                        _group_hover={"opacity": "1"},
+                        transition="opacity 0.2s ease",
+                    ),
+                ),
+                position="relative",
+                padding="0.65rem 1rem",
+                border_radius="1.25rem 1.25rem 1.25rem 0.25rem",
+                max_width="70%",
+                background=rx.color("accent", 4),
+                color=rx.color("gray", 12),
+                box_shadow="0 2px 8px rgba(0, 0, 0, 0.06)",
+                border=f"1px solid {rx.color('accent', 6)}",
+                align_self="flex-start",
+                transition="all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+                _hover={
+                    "box_shadow": "0 4px 12px rgba(0, 0, 0, 0.1)",
+                    "border_color": rx.color("accent", 7),
+                },
+                word_break="break-word",
             ),
-            class_name="flex flex-row gap-6",
+            display="flex",
+            flex_direction="row",
+            gap="1.5rem",
+            align_items="flex-start",
         ),
-        class_name="flex flex-col gap-8 pb-10 group",
+        display="flex",
+        flex_direction="column",
+        gap="2rem",
+        padding_bottom="2.5rem",
+        class_name="group",
     )
 
 

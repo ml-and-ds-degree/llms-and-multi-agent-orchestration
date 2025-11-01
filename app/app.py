@@ -3,7 +3,8 @@ import reflex as rx
 from app import style
 from app.components.reset import reset
 from app.components.settings import settings_icon
-from app.state import SettingsState
+from app.components.sidebar import sidebar, sidebar_toggle_button
+from app.state import SettingsState, State
 from app.views.chat import action_bar, chat
 from app.views.templates import templates
 
@@ -17,13 +18,17 @@ def index() -> rx.Component:
             }}
         """
         ),
+        # Sidebar
+        sidebar(),
+        # Toggle button when sidebar is closed
+        sidebar_toggle_button(),
         # Top bar with the reset and settings buttons
         rx.box(
             reset(),
             settings_icon(),
-            class_name="top-4 right-4 absolute flex flex-row items-center gap-3.5",
+            class_name="top-4 right-4 absolute flex flex-row items-center gap-3.5 z-30",
         ),
-        # Main content
+        # Main content - always centered regardless of sidebar
         rx.box(
             # Prompt examples
             templates(),
