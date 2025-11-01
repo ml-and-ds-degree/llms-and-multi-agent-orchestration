@@ -88,6 +88,13 @@ class State(rx.State):
     @rx.event
     def switch_session(self, session_id: str):
         """Switch to a different session"""
+        # Ignore stale IDs that might arrive after a deletion event
+        if not any(session.id == session_id for session in self.chat_sessions):
+            if self.chat_sessions:
+                self.current_session_id = self.chat_sessions[0].id
+            else:
+                self.current_session_id = ""
+            return
         self.current_session_id = session_id
 
     @rx.event
