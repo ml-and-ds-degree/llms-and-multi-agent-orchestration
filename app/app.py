@@ -4,7 +4,7 @@ from app import style
 from app.components.reset import reset
 from app.components.settings import settings_icon
 from app.components.sidebar import sidebar, sidebar_toggle_button
-from app.state import SettingsState, State
+from app.state import SettingsState
 from app.views.chat import action_bar, chat
 from app.views.templates import templates
 

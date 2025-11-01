@@ -29,7 +29,7 @@ def chat_session_item(session: ChatSession) -> rx.Component:
                 width="100%",
                 overflow="hidden",
                 # Critical: Allow vstack to shrink below content size
-                min_width="0",
+                class_name="flex-1 min-w-0",
             ),
             # Delete button
             rx.button(
@@ -54,7 +54,7 @@ def chat_session_item(session: ChatSession) -> rx.Component:
             State.current_session_id == session.id,
             "bg-accent-3 border-accent-6",
             "bg-transparent border-transparent hover:bg-slate-3",
-        )
+        ).to_string()
         + " px-3 py-2 rounded-lg cursor-pointer border transition-colors group",
         width="100%",
         overflow="hidden",
@@ -84,9 +84,10 @@ def sidebar() -> rx.Component:
                 width="100%",
                 align_items="center",
                 justify_content="space-between",
+                box_sizing="border-box",
             ),
             # List of chat sessions
-            rx.scroll_area(
+            rx.box(
                 rx.cond(
                     State.chat_sessions,
                     rx.vstack(
@@ -102,14 +103,16 @@ def sidebar() -> rx.Component:
                         class_name="text-slate-10 text-sm text-center py-8",
                     ),
                 ),
-                type="auto",
-                scrollbars="vertical",
                 class_name="flex-1",
+                width="100%",
+                overflow_y="auto",
+                overflow_x="hidden",
             ),
             width="100%",
             height="100%",
             spacing="4",
             class_name="p-4",
+            box_sizing="border-box",
         ),
         # Sidebar container styling
         position="fixed",
@@ -117,12 +120,8 @@ def sidebar() -> rx.Component:
         top="0",
         height="100vh",
         width="280px",
-        class_name=rx.cond(
-            State.sidebar_open,
-            "translate-x-0",
-            "-translate-x-full",
-        )
-        + " bg-slate-2 border-r border-slate-5 transition-transform duration-300 ease-in-out z-40 overflow-hidden",
+        class_name=State.sidebar_classes,
+        box_sizing="border-box",
     )
 
 

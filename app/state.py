@@ -12,7 +12,7 @@ os.environ["OLLAMA_BASE_URL"] = "http://localhost:11434/v1"
 
 class SettingsState(rx.State):
     # The font family for the app
-    font_family: str = "Poppins"
+    font_family: rx.Field[str] = rx.field("Poppins")
 
     @rx.event
     def set_font_family(self, font_family: str):
@@ -22,6 +22,7 @@ class SettingsState(rx.State):
 @dataclass
 class ChatSession:
     """Represents a single chat session"""
+
     id: str
     title: str
     created_at: str
@@ -30,21 +31,21 @@ class ChatSession:
 
 class State(rx.State):
     # The current question being asked.
-    question: str = ""
+    question: rx.Field[str] = rx.field("")
 
     # Whether the app is processing a question.
-    processing: bool = False
+    processing: rx.Field[bool] = rx.field(False)
 
     # List of all chat sessions
-    chat_sessions: list[ChatSession] = []
+    chat_sessions: rx.Field[list[ChatSession]] = rx.field(default_factory=list)
 
     # Current active session ID
-    current_session_id: str = ""
+    current_session_id: rx.Field[str] = rx.field("")
 
     # Whether sidebar is open
-    sidebar_open: bool = True
+    sidebar_open: rx.Field[bool] = rx.field(True)
 
-    user_id: str = str(uuid.uuid4())
+    user_id: rx.Field[str] = rx.field(str(uuid.uuid4()))
 
     @rx.var
     def current_session(self) -> ChatSession | None:
@@ -61,6 +62,13 @@ class State(rx.State):
             return self.current_session.messages
         return []
 
+    @rx.var
+    def sidebar_classes(self) -> str:
+        """Generate sidebar CSS classes based on state"""
+        base = "bg-slate-2 border-r border-slate-5 transition-transform duration-300 ease-in-out z-40 overflow-hidden"
+        transform = "translate-x-0" if self.sidebar_open else "-translate-x-full"
+        return f"{transform} {base}"
+
     @rx.event
     def set_question(self, question: str):
         self.question = question
@@ -69,31 +77,33 @@ class State(rx.State):
         """Create a new chat session"""
         new_session = ChatSession(
             id=str(uuid.uuid4()),
-            title=f"New Chat",
+            title="New Chat",
             created_at=datetime.now().strftime("%b %d, %Y %I:%M %p"),
-            messages=[]
+            messages=[],
         )
-        self.chat_sessions.append(new_session)
+        # Always assign a new list so Reflex registers the state change
+        self.chat_sessions = [*self.chat_sessions, new_session]
         self.current_session_id = new_session.id
 
+    @rx.event
     def switch_session(self, session_id: str):
         """Switch to a different session"""
         self.current_session_id = session_id
 
+    @rx.event
     def delete_session(self, session_id: str):
         """Delete a specific session"""
-        self.chat_sessions = [
-            s for s in self.chat_sessions 
-            if s.id != session_id
-        ]
-        
+        remaining_sessions = [s for s in self.chat_sessions if s.id != session_id]
+        self.chat_sessions = remaining_sessions
+
         # If we deleted the current session, switch to another or create new
         if self.current_session_id == session_id:
-            if self.chat_sessions:
-                self.current_session_id = self.chat_sessions[0].id
+            if remaining_sessions:
+                self.current_session_id = remaining_sessions[0].id
             else:
                 self.create_new_session()
 
+    @rx.event
     def toggle_sidebar(self):
         """Toggle sidebar visibility"""
         self.sidebar_open = not self.sidebar_open
@@ -104,9 +114,14 @@ class State(rx.State):
             for session in self.chat_sessions:
                 if session.id == self.current_session_id:
                     # Use first 50 chars of question as title
-                    session.title = first_question[:50] + "..." if len(first_question) > 50 else first_question
+                    session.title = (
+                        first_question[:50] + "..."
+                        if len(first_question) > 50
+                        else first_question
+                    )
                     break
 
+    @rx.event
     async def answer(self):
         """
         Process user question and get response from LLM.
@@ -115,7 +130,7 @@ class State(rx.State):
         # Validation
         if not self.question.strip():
             return
-        
+
         # Create a new session if none exists
         if not self.current_session_id:
             self.create_new_session()
@@ -124,10 +139,10 @@ class State(rx.State):
         # Store question and clear input
         question = self.question
         self.question = ""
-        
+
         # Set processing state
         self.processing = True
-        
+
         # Add user message to current session
         for session in self.chat_sessions:
             if session.id == self.current_session_id:
@@ -136,7 +151,7 @@ class State(rx.State):
                 if len(session.messages) == 1:
                     self.update_session_title(question)
                 break
-        
+
         # Yield to show user message immediately
         yield
 
@@ -144,7 +159,9 @@ class State(rx.State):
             # Get current session messages for context
             current_messages = []
             if self.current_session:
-                current_messages = self.current_session.messages[:-1]  # Exclude the current empty assistant message
+                current_messages = self.current_session.messages[
+                    :-1
+                ]  # Exclude the current empty assistant message
 
             # Build conversation context
             conversation_context = ""
@@ -176,7 +193,7 @@ class State(rx.State):
                         )
                         yield
                     break
-        
+
         except Exception as e:
             # Handle errors gracefully
             error_msg = f"Error: {str(e)}"
@@ -188,17 +205,19 @@ class State(rx.State):
                     )
                     break
             yield
-        
+
         finally:
             # Always reset processing state
             self.processing = False
             yield
 
+    @rx.event
     async def handle_key_down(self, key: str):
         if key == "Enter":
             async for t in self.answer():
                 yield t
 
+    @rx.event
     def clear_chat(self):
         # Create a new session (effectively clearing the current chat)
         self.create_new_session()

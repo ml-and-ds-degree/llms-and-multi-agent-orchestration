@@ -1,5 +1,5 @@
 import reflex as rx
-from reflex.style import color_mode, set_color_mode
+from reflex.style import color_mode
 
 from app.components.hint import hint
 from app.state import SettingsState
@@ -81,7 +81,7 @@ def settings_icon() -> rx.Component:
                             value="dark",
                             class_name="cursor-pointer",
                         ),
-                        on_change=set_color_mode,
+                        on_change=lambda mode: rx.style.set_color_mode(mode),
                         variant="classic",
                         radius="large",
                         value=color_mode,
