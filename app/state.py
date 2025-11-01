@@ -128,49 +128,50 @@ class State(rx.State):
                     )
                     break
 
-    @rx.event
+    @rx.event(background=True)
     async def answer(self):
         """
-        Process user question and get response from LLM.
-        Uses yield to keep UI responsive during processing.
+        Process user question and get response from LLM using background streaming.
+        Runs in background to keep UI fully responsive during processing.
         """
-        # Validation
-        if not self.question.strip():
-            return
+        # Validation and initial setup (must be done within async with self)
+        async with self:
+            if not self.question.strip():
+                return
 
-        # Create a new session if none exists
-        if not self.current_session_id:
-            self.create_new_session()
-            yield  # Update UI after creating session
+            # Create a new session if none exists
+            if not self.current_session_id:
+                self.create_new_session()
 
-        # Store question and clear input
-        question = self.question
-        self.question = ""
+            # Store question and clear input
+            question = self.question
+            self.question = ""
 
-        # Set processing state
-        self.processing = True
+            # Set processing state
+            self.processing = True
 
-        # Add user message to current session
-        for session in self.chat_sessions:
-            if session.id == self.current_session_id:
-                session.messages.append((question, ""))
-                # Update title if this is the first message
-                if len(session.messages) == 1:
-                    self.update_session_title(question)
-                break
+            # Get current session ID before starting background work
+            session_id = self.current_session_id
 
-        # Yield to show user message immediately
-        yield
+            # Add user message to current session
+            for session in self.chat_sessions:
+                if session.id == session_id:
+                    session.messages.append((question, ""))
+                    # Update title if this is the first message
+                    if len(session.messages) == 1:
+                        self.update_session_title(question)
+                    break
 
         try:
             # Get current session messages for context
-            current_messages = []
-            if self.current_session:
-                current_messages = self.current_session.messages[
-                    :-1
-                ]  # Exclude the current empty assistant message
+            async with self:
+                current_messages = []
+                if self.current_session:
+                    current_messages = self.current_session.messages[
+                        :-1
+                    ]  # Exclude the current empty assistant message
 
-            # Build conversation context
+            # Build conversation context (outside lock - no state access)
             conversation_context = ""
             for user_msg, assistant_msg in current_messages:
                 conversation_context += f"User: {user_msg}\n"
@@ -183,46 +184,50 @@ class State(rx.State):
             # Initialize pydantic_ai agent
             agent = Agent("ollama:llama3.2")
 
-            # Run the agent
-            result = await agent.run(full_prompt)
-            answer = result.output
+            # Stream the response using run_stream
+            accumulated_response = ""
 
-            # Stream the response character by character
-            for session in self.chat_sessions:
-                if session.id == self.current_session_id:
-                    for i in range(len(answer)):
-                        # Pause to show the streaming effect
-                        await asyncio.sleep(0.01)
-                        # Add one letter at a time to the output
-                        session.messages[-1] = (
-                            session.messages[-1][0],
-                            answer[: i + 1],
-                        )
-                        yield
-                    break
+            async with agent.run_stream(full_prompt) as result:
+                # Stream text as it comes in from Ollama
+                async for text_chunk in result.stream_text(delta=False, debounce_by=0.05):
+                    # text_chunk contains the full text so far (delta=False)
+                    accumulated_response = text_chunk
+
+                    # Update the last message with streaming response
+                    async with self:
+                        for session in self.chat_sessions:
+                            if session.id == session_id:
+                                if session.messages:
+                                    # Update the AI response in place
+                                    session.messages[-1] = (question, accumulated_response)
+                                break
+
+                    # Small delay to prevent overwhelming the UI
+                    await asyncio.sleep(0.01)
 
         except Exception as e:
             # Handle errors gracefully
             error_msg = f"Error: {str(e)}"
-            for session in self.chat_sessions:
-                if session.id == self.current_session_id:
-                    session.messages[-1] = (
-                        session.messages[-1][0],
-                        error_msg,
-                    )
-                    break
-            yield
+            async with self:
+                for session in self.chat_sessions:
+                    if session.id == session_id:
+                        if session.messages:
+                            session.messages[-1] = (
+                                session.messages[-1][0],
+                                error_msg,
+                            )
+                        break
 
         finally:
             # Always reset processing state
-            self.processing = False
-            yield
+            async with self:
+                self.processing = False
 
     @rx.event
     async def handle_key_down(self, key: str):
-        if key == "Enter":
-            async for t in self.answer():
-                yield t
+        if key == "Enter" and not self.processing:
+            # Trigger the background answer event
+            return State.answer
 
     @rx.event
     def clear_chat(self):
