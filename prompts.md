@@ -2,7 +2,7 @@
 
 ## ChatGPT
 
-1. I want to fill the readme file with explanation about the chat bot, how to run it and everything that should be in a readme of the highest standarts.
+1. I want to fill the readme file with explanation about the chat bot, how to run it and everything that should be in a readme of the highest standarts. <- README.md creation
 
 ## OpenCode - Very Cool!
 
