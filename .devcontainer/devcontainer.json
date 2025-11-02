@@ -19,7 +19,8 @@
                 "docker.docker",
                 "ms-azuretools.vscode-containers",
                 "tamasfe.even-better-toml",
-                "christian-kohler.path-intellisense"
+                "christian-kohler.path-intellisense",
+                "seatonjiang.gitmoji-vscode"
             ]
         }
     },
