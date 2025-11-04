@@ -5,6 +5,7 @@ An interactive chat experience built with [Reflex](https://reflex.dev/) on the f
 ---
 
 ## ✨ Highlights
+
 - **Responsive Reflex UI** with keyboard support, streaming answer animation, and a polished send button.
 - **Live customization** of theme (system / light / dark) and font family via settings popover.
 - **Memoryful conversations** – chat history is preserved in state and reused in prompts for richer answers.
@@ -34,7 +35,7 @@ An interactive chat experience built with [Reflex](https://reflex.dev/) on the f
 
 - **Python 3.13** (Reflex currently targets 3.9–3.11, but the project uses 3.13 via [`uv`](https://github.com/astral-sh/uv); see troubleshooting notes below).
 - **uv** package manager (recommended) – install from the official docs: `pip install uv`.
-- **Ollama** running locally with the `llama3.2` model available:  
+- **Ollama** running locally with the `llama3.2` model available:
   ```bash
   brew install ollama  # or follow instructions at https://ollama.com/
   ollama pull llama3.2
@@ -68,9 +69,10 @@ Start Ollama (if not already running), then launch the Reflex development server
 uv run reflex run
 ```
 
-The UI will be available at http://localhost:3000 (default Reflex port).  
+The UI will be available at http://localhost:3000 (default Reflex port).
 
 Key interactions:
+
 - Type in the prompt bar or hit **Enter** to submit.
 - Click the **Send** button to dispatch your prompt (spinner shows while the agent responds).
 - Use the **Settings** icon (top right) to tweak fonts and light/dark/system theme.
@@ -93,11 +95,11 @@ If you omit the argument, the script will prompt you interactively.
 
 ## ⚙️ Configuration
 
-| Setting | Description | Default |
-|---------|-------------|---------|
-| `OLLAMA_BASE_URL` | Endpoint for the Ollama REST API | `http://localhost:11434/v1` |
-| `Agent("ollama:llama3.2")` | Model identifier passed to `pydantic_ai.Agent` | `ollama:llama3.2` |
-| `SettingsState` fields | Font family (`Poppins`) | Change at runtime via UI |
+| Setting                    | Description                                    | Default                     |
+| -------------------------- | ---------------------------------------------- | --------------------------- |
+| `OLLAMA_BASE_URL`          | Endpoint for the Ollama REST API               | `http://localhost:11434/v1` |
+| `Agent("ollama:llama3.2")` | Model identifier passed to `pydantic_ai.Agent` | `ollama:llama3.2`           |
+| `SettingsState` fields     | Font family (`Poppins`)                        | Change at runtime via UI    |
 
 > To persist a different model or base URL, edit `app/state.py`. Reflex automatically reloads on save during development.
 
@@ -124,3 +126,17 @@ If you omit the argument, the script will prompt you interactively.
 - Reflex hot reload keeps UI changes instant; state changes in Python files rebuild automatically.
 - For faster debugging, instrument `State.answer` with logging (e.g., `print`) — Reflex pipes stdout to the console.
 - Add integration tests around `State.answer` using `pytest` + `anyio` if you need coverage for async state transitions.
+
+---
+
+## 🤖 OpenCode Setup
+
+We've chosen to focus on [OpenCode](https://opencode.ai/) as our primary development tool for this project. OpenCode is an AI coding agent for the terminal that supports **multiple LLM providers** (OpenAI, Anthropic, GitHub Copilot, Ollama, and more), making it flexible and provider-agnostic. This allows the team to leverage AI assistance for building features, debugging issues, and understanding the codebase without being locked into a single provider.
+
+### Specialized Subagents
+
+Two framework-expert subagents are configured in `.opencode/agent/`, both using **GitHub Copilot's non-token-consuming model** (GPT-5 mini) for extremely cost-effective assistance:
+
+**`@reflex-docs-expert`** – Retrieves Reflex framework documentation and best practices
+
+**`@pydantic-ai-expert`** – Retrieves Pydantic AI documentation and implementation guidance
