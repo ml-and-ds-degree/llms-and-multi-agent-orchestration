@@ -43,6 +43,10 @@ ENV PATH="/root/.bun/bin:${PATH}"
 # The script installs the latest stable version
 RUN curl -fsSL https://ollama.com/install.sh | sh
 
+# Install OpenCode
+# Using official installation script
+RUN curl -fsSL https://opencode.ai/install | bash
+
 # Switch back to dialog for any ad-hoc use of apt-get
 ENV DEBIAN_FRONTEND=dialog
 
