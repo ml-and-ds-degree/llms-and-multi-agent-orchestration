@@ -81,18 +81,6 @@ Key interactions:
 
 ---
 
-## 🛠 CLI Prompting (Optional)
-
-Prefer a fast terminal round-trip? Use the bundled helper script:
-
-```bash
-uv run python main.py "Explain multi-agent orchestration in simple terms."
-```
-
-If you omit the argument, the script will prompt you interactively.
-
----
-
 ## ⚙️ Configuration
 
 | Setting                    | Description                                    | Default                     |
@@ -118,14 +106,6 @@ If you omit the argument, the script will prompt you interactively.
 
 - **Agent responses stall**  
   Check Ollama logs for request errors. The UI streams responses one character at a time; if the agent returns nothing, the stream will appear empty.
-
----
-
-## 🧪 Development Tips
-
-- Reflex hot reload keeps UI changes instant; state changes in Python files rebuild automatically.
-- For faster debugging, instrument `State.answer` with logging (e.g., `print`) — Reflex pipes stdout to the console.
-- Add integration tests around `State.answer` using `pytest` + `anyio` if you need coverage for async state transitions.
 
 ---
 
