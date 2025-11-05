@@ -1,9 +1,22 @@
+"""Template cards that seed example prompts for users."""
+
 import reflex as rx
 
 from app.state import State
 
 
 def template_card(icon: str, title: str, description: str, color: str) -> rx.Component:
+    """Render a single template button that seeds the input box.
+
+    Args:
+        icon: Icon identifier used in the button.
+        title: Short heading describing the template.
+        description: Prompt text that gets inserted when the template is clicked.
+        color: Radix color token for the icon accent.
+
+    Returns:
+        rx.Component: Button configured to populate and send the template prompt.
+    """
     return rx.el.button(
         rx.icon(tag=icon, color=rx.color(color, 9), size=16),
         rx.text(title, class_name="font-medium text-slate-11 text-sm"),
@@ -14,6 +27,11 @@ def template_card(icon: str, title: str, description: str, color: str) -> rx.Com
 
 
 def templates() -> rx.Component:
+    """Group the default prompt templates shown on fresh sessions.
+
+    Returns:
+        rx.Component: Layout of example prompts displayed before chatting.
+    """
     return rx.box(
         rx.image(
             src="/llama.svg",

@@ -1,9 +1,17 @@
+"""UI component for resetting the chat conversation."""
+
 import reflex as rx
-from app.state import State
+
 from app.components.hint import hint
+from app.state import State
 
 
 def reset() -> rx.Component:
+    """Render the top-bar new chat action.
+
+    Returns:
+        rx.Component: Hoverable button that starts a fresh chat session.
+    """
     return hint(
         text="New Chat",
         content=rx.box(

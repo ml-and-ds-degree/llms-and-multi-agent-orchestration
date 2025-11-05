@@ -1,3 +1,5 @@
+"""Top-level Reflex app configuration and page registration."""
+
 import reflex as rx
 
 from app import style
@@ -10,6 +12,11 @@ from app.views.templates import templates
 
 
 def index() -> rx.Component:
+    """Build the main chatbot page layout.
+
+    Returns:
+        rx.Component: Root component containing the sidebar, chat interface, and settings controls.
+    """
     return rx.theme(
         rx.el.style(
             f"""

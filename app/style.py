@@ -1,4 +1,5 @@
-# style.py
+"""Shared styles and color helpers for the Reflex application."""
+
 from reflex.constants.colors import ColorType
 
 STYLESHEETS = [
@@ -8,6 +9,11 @@ STYLESHEETS = [
 
 # Default Radix Colors
 def create_colors_dict() -> dict:
+    """Generate a mapping of Radix theme colors to CSS variable references.
+
+    Returns:
+        dict: Nested dictionary keyed by color family and shade number.
+    """
     colors_dict = {}
     for color in ColorType.__args__:
         if color not in ["black", "white"]:

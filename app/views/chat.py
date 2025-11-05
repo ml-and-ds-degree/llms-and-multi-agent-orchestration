@@ -1,9 +1,20 @@
+"""Core chat interface views including messages and input controls."""
+
 import reflex as rx
 
 from app.state import State
 
 
 def qa(question: str, answer: str) -> rx.Component:
+    """Render a chat exchange with user and assistant bubbles.
+
+    Args:
+        question: Text of the user's prompt.
+        answer: Latest assistant response for the prompt.
+
+    Returns:
+        rx.Component: Structured layout for a single QA pair.
+    """
     return rx.box(
         # User question bubble
         rx.box(
@@ -140,6 +151,11 @@ def qa(question: str, answer: str) -> rx.Component:
 
 
 def chat() -> rx.Component:
+    """List chat messages inside a scrollable container.
+
+    Returns:
+        rx.Component: Scrollable area rendering the stateful chat transcript.
+    """
     return rx.scroll_area(
         rx.foreach(
             State.chat_history,
@@ -151,6 +167,11 @@ def chat() -> rx.Component:
 
 
 def action_bar() -> rx.Component:
+    """Render the prompt input field and send button.
+
+    Returns:
+        rx.Component: Form controls for entering and submitting a prompt.
+    """
     return rx.box(
         rx.box(
             rx.el.input(

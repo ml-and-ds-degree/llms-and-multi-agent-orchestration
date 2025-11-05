@@ -1,3 +1,5 @@
+"""Settings popover for configuring theme and typography."""
+
 import reflex as rx
 from reflex.style import color_mode
 
@@ -6,6 +8,14 @@ from app.state import SettingsState
 
 
 def font_item(font: str) -> rx.Component:
+    """Render a selectable font row inside the popover.
+
+    Args:
+        font: Name of the font family to present.
+
+    Returns:
+        rx.Component: Styled button that updates the `SettingsState` font when clicked.
+    """
     return rx.box(
         rx.text(
             font,
@@ -24,6 +34,11 @@ def font_item(font: str) -> rx.Component:
 
 
 def settings_icon() -> rx.Component:
+    """Create the settings icon with popover controls.
+
+    Returns:
+        rx.Component: Popover trigger that exposes font and theme settings.
+    """
     fonts = ["Instrument Sans", "Poppins", "Inter", "Lato", "Roboto", "Open Sans"]
 
     return rx.popover.root(

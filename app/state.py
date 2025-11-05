@@ -1,3 +1,5 @@
+"""Reactive application state management for the chatbot experience."""
+
 import os
 import uuid
 from dataclasses import dataclass, field
@@ -10,17 +12,24 @@ os.environ["OLLAMA_BASE_URL"] = "http://localhost:11434/v1"
 
 
 class SettingsState(rx.State):
+    """Manage user-configurable interface preferences."""
+
     # The font family for the app
     font_family: rx.Field[str] = rx.field("Poppins")
 
     @rx.event
     def set_font_family(self, font_family: str):
+        """Update the active font family for the UI.
+
+        Args:
+            font_family: Name of the font the interface should use.
+        """
         self.font_family = font_family
 
 
 @dataclass
 class ChatSession:
-    """Represents a single chat session"""
+    """Represents a single chat session."""
 
     id: str
     title: str
@@ -29,6 +38,8 @@ class ChatSession:
 
 
 class State(rx.State):
+    """Track chat flow, session management, and UI state."""
+
     # The current question being asked.
     question: rx.Field[str] = rx.field("")
 
@@ -48,7 +59,11 @@ class State(rx.State):
 
     @rx.var
     def current_session(self) -> ChatSession | None:
-        """Get the currently active session"""
+        """Get the currently active session.
+
+        Returns:
+            ChatSession | None: The session matching `current_session_id`, if any.
+        """
         for session in self.chat_sessions:
             if session.id == self.current_session_id:
                 return session
@@ -56,24 +71,37 @@ class State(rx.State):
 
     @rx.var
     def chat_history(self) -> list[tuple[str, str]]:
-        """Get messages from current session"""
+        """Get messages from the current session.
+
+        Returns:
+            list[tuple[str, str]]: Ordered list of (question, answer) message pairs.
+        """
         if self.current_session:
             return self.current_session.messages
         return []
 
     @rx.var
     def sidebar_classes(self) -> str:
-        """Generate sidebar CSS classes based on state"""
+        """Generate sidebar CSS classes for the current visibility state.
+
+        Returns:
+            str: Tailwind-style class list controlling the sidebar presentation.
+        """
         base = "bg-slate-2 border-r border-slate-5 transition-transform duration-300 ease-in-out z-40 overflow-hidden"
         transform = "translate-x-0" if self.sidebar_open else "-translate-x-full"
         return f"{transform} {base}"
 
     @rx.event
     def set_question(self, question: str):
+        """Store the latest user prompt edit.
+
+        Args:
+            question: Text entered into the message input field.
+        """
         self.question = question
 
     def create_new_session(self):
-        """Create a new chat session"""
+        """Create a new chat session and mark it active."""
         new_session = ChatSession(
             id=str(uuid.uuid4()),
             title="New Chat",
@@ -86,7 +114,11 @@ class State(rx.State):
 
     @rx.event
     def switch_session(self, session_id: str):
-        """Switch to a different session"""
+        """Switch to a different session.
+
+        Args:
+            session_id: Identifier of the session that should become active.
+        """
         # Ignore stale IDs that might arrive after a deletion event
         if not any(session.id == session_id for session in self.chat_sessions):
             if self.chat_sessions:
@@ -98,7 +130,11 @@ class State(rx.State):
 
     @rx.event
     def delete_session(self, session_id: str):
-        """Delete a specific session"""
+        """Delete a specific session and recover the UI if needed.
+
+        Args:
+            session_id: Identifier of the session that should be removed.
+        """
         remaining_sessions = [s for s in self.chat_sessions if s.id != session_id]
         self.chat_sessions = remaining_sessions
 
@@ -111,11 +147,15 @@ class State(rx.State):
 
     @rx.event
     def toggle_sidebar(self):
-        """Toggle sidebar visibility"""
+        """Toggle sidebar visibility."""
         self.sidebar_open = not self.sidebar_open
 
     def update_session_title(self, first_question: str):
-        """Update the title of current session based on first question"""
+        """Update the title of the current session from the first prompt.
+
+        Args:
+            first_question: Text of the initial user message in the session.
+        """
         if self.current_session:
             for session in self.chat_sessions:
                 if session.id == self.current_session_id:
@@ -129,9 +169,11 @@ class State(rx.State):
 
     @rx.event(background=True)
     async def answer(self):
-        """
-        Process user question and get response from LLM using background streaming.
-        Runs in background to keep UI fully responsive during processing.
+        """Stream an LLM answer for the active question in the background.
+
+        This method optimistically appends the user message, streams assistant text
+        from the configured agent, and keeps the UI responsive while processing.
+        Errors encountered during streaming are surfaced in the chat history.
         """
         # Validation and initial setup (must be done within async with self)
         async with self:
@@ -226,12 +268,21 @@ class State(rx.State):
 
     @rx.event
     async def handle_key_down(self, key: str):
+        """Dispatch background answering when Enter is pressed.
+
+        Args:
+            key: Keyboard key identifier from the input event.
+
+        Returns:
+            Callable | None: The `State.answer` event when submission should fire.
+        """
         if key == "Enter" and not self.processing:
             # Trigger the background answer event
             return State.answer
 
     @rx.event
     def clear_chat(self):
+        """Reset chat state by opening a fresh session."""
         # Create a new session (effectively clearing the current chat)
         self.create_new_session()
         self.processing = False

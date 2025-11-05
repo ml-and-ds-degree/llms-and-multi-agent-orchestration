@@ -1,10 +1,19 @@
+"""Sidebar components for browsing and managing chat sessions."""
+
 import reflex as rx
 
 from app.state import ChatSession, State
 
 
 def chat_session_item(session: ChatSession) -> rx.Component:
-    """Individual chat session item in the sidebar"""
+    """Render a single session with selection and delete affordances.
+
+    Args:
+        session: Session metadata to display and bind to interactions.
+
+    Returns:
+        rx.Component: Styled container representing the chat session.
+    """
     return rx.box(
         rx.hstack(
             # Session info
@@ -64,7 +73,11 @@ def chat_session_item(session: ChatSession) -> rx.Component:
 
 
 def sidebar() -> rx.Component:
-    """The sidebar with chat history"""
+    """Build the persistent chat history sidebar.
+
+    Returns:
+        rx.Component: Fixed-position panel listing stored chat sessions.
+    """
     return rx.box(
         # Main sidebar content
         rx.vstack(
@@ -126,7 +139,11 @@ def sidebar() -> rx.Component:
 
 
 def sidebar_toggle_button() -> rx.Component:
-    """Toggle button to show/hide sidebar when closed"""
+    """Display a floating toggle button when the sidebar is hidden.
+
+    Returns:
+        rx.Component: Conditional button that reopens the sidebar.
+    """
     return rx.cond(
         ~State.sidebar_open,
         rx.button(
