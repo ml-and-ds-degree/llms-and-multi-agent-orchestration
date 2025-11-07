@@ -10,3 +10,4 @@
 2. https://opencode.ai/s/hINpdvEc <- Sidebar chat sessions border overflow fix
 3. https://opencode.ai/s/hINpdvEc <- refactor state to use rx.Field for better reactivity
 4. https://opencode.ai/s/eIHo4UH7 <- fix sidebar chat sessions border overflow
+5. https://opencode.ai/s/kI79cCYl <- Add comprehensive testing infrastructure

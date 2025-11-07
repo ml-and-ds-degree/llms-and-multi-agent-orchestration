@@ -4,7 +4,14 @@ version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.13"
-dependencies = [
-    "pydantic-ai[ollama]>=1.7.0",
-    "reflex>=0.8.17",
+dependencies = ["pydantic-ai>=1.7.0", "reflex>=0.8.17"]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0",
+    "pytest-mock>=3.12.0",
+    "pytest-playwright>=0.4.0",
+    "playwright>=1.40.0",
+    "requests>=2.31.0",
 ]

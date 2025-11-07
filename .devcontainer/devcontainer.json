@@ -7,6 +7,7 @@
     "customizations": {
         "vscode": {
             "settings": {
+                "python.testing.autoTestDiscoverOnSaveEnabled": false,
                 "terminal.integrated.defaultProfile.linux": "zsh",
                 "python.defaultInterpreterPath": "../.venv/bin/python",
                 "terminal.integrated.stickyScroll.enabled": false
