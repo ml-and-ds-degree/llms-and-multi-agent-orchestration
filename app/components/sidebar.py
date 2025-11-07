@@ -133,7 +133,15 @@ def sidebar() -> rx.Component:
         top="0",
         height="100vh",
         width="280px",
-        class_name=State.sidebar_classes,
+        class_name="bg-slate-2 border-r border-slate-5 transition-transform duration-300 ease-in-out z-40 overflow-hidden",
+        # Use inline style for transform to ensure reactivity
+        style={
+            "transform": rx.cond(
+                State.sidebar_open,
+                "translateX(0)",
+                "translateX(-100%)",
+            ),
+        },
         box_sizing="border-box",
     )
 
@@ -157,5 +165,7 @@ def sidebar_toggle_button() -> rx.Component:
             z_index="50",
             class_name="cursor-pointer",
             title="Open sidebar",
+            aria_label="Open sidebar",
         ),
+        rx.fragment(),  # Empty when sidebar is open
     )
