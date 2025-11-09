@@ -19,13 +19,21 @@ An interactive chat experience built with [Reflex](https://reflex.dev/) on the f
 ```
 .
 ├── app/
-│   ├── app.py              # Reflex app definition (theme, layout)
-│   ├── state.py            # Core chat & settings state machines
-│   ├── components/         # Reusable UI pieces (send button, reset, settings, badges)
-│   └── views/              # Page-level layout (chat area, action bar, templates)
-├── assets/                 # Static assets served by Reflex (icons, logos)
-├── main.py                 # Minimal CLI utility to send prompts to the agent
-├── pyproject.toml          # Project metadata and dependencies (Python ≥3.13)
+│   ├── app.py              # Reflex app definition (root component, routing, themes)
+│   ├── state.py            # Chat + settings state machines powering the UI
+│   ├── style.py            # Shared design tokens used across the app
+│   ├── components/         # Sidebar, settings popover, buttons, templates, etc.
+│   └── views/              # Page-level layout primitives (chat area, action bar)
+├── assets/                 # Static assets served by Reflex (icons, SVG logos)
+├── prompts.md              # Prompt engineering notes and reusable templates
+├── tests/
+│   ├── test_state.py       # Unit tests for the Reflex state logic
+│   ├── e2e/                # Scenario placeholders + helper scripts
+│   └── setup_tests.sh      # Bootstraps test environment locally/CI
+├── pyproject.toml          # Project metadata and Python dependencies (via uv)
+├── rxconfig.py             # Reflex configuration (app name, API URL, etc.)
+├── pytest.ini              # Pytest defaults for the test suite
+├── uv.lock                 # Resolved dependency lockfile for reproducible installs
 └── README.md               # You're here
 ```
 
