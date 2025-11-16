@@ -1,0 +1,138 @@
+
+================================================================================
+Processing: 0_percent_errors
+================================================================================
+
+Found 5 original sentences
+Found 5 translated sentences
+
+Cosine Similarities between sentence pairs:
+--------------------------------------------------------------------------------
+
+Pair 1:
+Original:    The sophisticated artificial intelligence system was designed to analyze complex...
+Translated:  The highly advanced artificial intelligence system was developed to simultaneous...
+Similarity:  0.9835
+--------------------------------------------------------------------------------
+
+Pair 2:
+Original:    Despite receiving numerous warnings from the meteorological department, the adve...
+Translated:  Despite the numerous warnings from the weather service, the intrepid hikers deci...
+Similarity:  0.7710
+--------------------------------------------------------------------------------
+
+Pair 3:
+Original:    The renowned professor's groundbreaking research on quantum mechanics has signif...
+Translated:  The groundbreaking work of the renowned professor of quantum mechanics has contr...
+Similarity:  0.9679
+--------------------------------------------------------------------------------
+
+Pair 4:
+Original:    In order to achieve sustainable economic growth, governments must implement comp...
+Translated:  To achieve sustainable economic growth, governments must implement comprehensive...
+Similarity:  0.8953
+--------------------------------------------------------------------------------
+
+Pair 5:
+Original:    The multinational corporation announced its ambitious plan to develop environmen...
+Translated:  The multinational company has announced its ambitious plan to develop environmen...
+Similarity:  0.9881
+--------------------------------------------------------------------------------
+
+Summary for 0_percent_errors:
+Average Similarity: 0.9212
+Min Similarity:     0.7710
+Max Similarity:     0.9881
+Std Deviation:      0.0822
+
+================================================================================
+Processing: 25_percent_errors
+================================================================================
+
+Found 5 original sentences
+Found 5 translated sentences
+
+Cosine Similarities between sentence pairs:
+--------------------------------------------------------------------------------
+
+Pair 1:
+Original:    The sophisitcated artifical inteligence systm was desined to analize complx pate...
+Translated:  The highly advanced AI system was developed to analyze complex patterns in the f...
+Similarity:  0.2562
+--------------------------------------------------------------------------------
+
+Pair 2:
+Original:    Dispite recieving numerus warings from the meteorlogical departmnt, the adventro...
+Translated:  Despite the numerous warnings from the weather service, the intrepid hikers deci...
+Similarity:  0.2103
+--------------------------------------------------------------------------------
+
+Pair 3:
+Original:    The renownd profesors groundbraking reserch on qantum mechanics has significnatl...
+Translated:  The groundbreaking research carried out by renowned professors of quantum mechan...
+Similarity:  0.4088
+--------------------------------------------------------------------------------
+
+Pair 4:
+Original:    In ordr to acheive sustainble economc grwoth, goverments must impliment comprhen...
+Translated:  To achieve sustainable economic growth, governments must implement comprehensive...
+Similarity:  0.4158
+--------------------------------------------------------------------------------
+
+Pair 5:
+Original:    The multinatonal corperation anounced its ambitous plan to devlop enviromentally...
+Translated:  The multinational company has announced its ambitious plan to develop environmen...
+Similarity:  0.4100
+--------------------------------------------------------------------------------
+
+Summary for 25_percent_errors:
+Average Similarity: 0.3402
+Min Similarity:     0.2103
+Max Similarity:     0.4158
+Std Deviation:      0.0886
+
+================================================================================
+Processing: 50_percent_errors
+================================================================================
+
+Found 5 original sentences
+Found 5 translated sentences
+
+Cosine Similarities between sentence pairs:
+--------------------------------------------------------------------------------
+
+Pair 1:
+Original:    The sophisitcated artifical inteligence systm was desined to analize complx pate...
+Translated:  The sophisticated artificial intelligence system was designed to simultaneously ...
+Similarity:  0.2654
+--------------------------------------------------------------------------------
+
+Pair 2:
+Original:    Dispite recieving numerus warings frm the meteorlogical departmnt, the adventrou...
+Translated:  Despite numerous warnings from the weather service, the adventurous hikers decid...
+Similarity:  0.0954
+--------------------------------------------------------------------------------
+
+Pair 3:
+Original:    The renownd profesors groundbraking reserch on qantum mechanics has significnatl...
+Translated:  The groundbreaking research of the renowned professor of quantum mechanics has c...
+Similarity:  0.4891
+--------------------------------------------------------------------------------
+
+Pair 4:
+Original:    In ordr to acheive sustainble economc grwoth, goverments must impliment comprhen...
+Translated:  To achieve sustainable economic growth, governments must implement comprehensive...
+Similarity:  0.4329
+--------------------------------------------------------------------------------
+
+Pair 5:
+Original:    The multinatonal corperation anounced its ambitous plan to devlop enviromentally...
+Translated:  The multinational company has announced its ambitious plan to develop environmen...
+Similarity:  0.4334
+--------------------------------------------------------------------------------
+
+Summary for 50_percent_errors:
+Average Similarity: 0.3433
+Min Similarity:     0.0954
+Max Similarity:     0.4891
+Std Deviation:      0.1449
