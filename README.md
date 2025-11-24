@@ -16,7 +16,7 @@ An interactive chat experience built with [Reflex](https://reflex.dev/) on the f
 
 ## 🗂 Project Structure
 
-```
+```bash
 .
 ├── app/
 │   ├── app.py              # Reflex app definition (root component, routing, themes)
@@ -44,11 +44,13 @@ An interactive chat experience built with [Reflex](https://reflex.dev/) on the f
 - **Python 3.13** (Reflex currently targets 3.9–3.11, but the project uses 3.13 via [`uv`](https://github.com/astral-sh/uv); see troubleshooting notes below).
 - **uv** package manager (recommended) – install from the official docs: `pip install uv`.
 - **Ollama** running locally with the `llama3.2` model available:
+
   ```bash
   brew install ollama  # or follow instructions at https://ollama.com/
   ollama pull llama3.2
   ollama serve  # ensures API at http://localhost:11434/v1
   ```
+
   > Want to point at another Ollama instance or model? Set `OLLAMA_BASE_URL` or adjust `Agent("ollama:...")` in `app/state.py`.
 
 ---
@@ -77,7 +79,7 @@ Start Ollama (if not already running), then launch the Reflex development server
 uv run reflex run
 ```
 
-The UI will be available at http://localhost:3000 (default Reflex port).
+The UI will be available at <http://localhost:3000> (default Reflex port).
 
 Key interactions:
 
