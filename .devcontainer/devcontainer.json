@@ -39,6 +39,10 @@
     "forwardPorts": [
         11434
     ],
+    "initializeCommand": "bash .devcontainer/scripts/setup-auth.sh",
+    "mounts": [
+        "source=/tmp/opencode-auth-mount/auth.json,target=/root/.local/share/opencode/auth.json,type=bind"
+    ],
     "postCreateCommand": {
         "installPython": "uv python install 3.13",
         "installReflexTool": "uv tool install reflex",
