@@ -53,13 +53,13 @@ an initial guess, but you should confirm against the known answers.
 
 ## Evidence & Outstanding Items
 
-1. **Video-specific answers** — record short notes for the required questions
+1. __Video-specific answers__ — record short notes for the required questions
    (e.g., recommended embedding model, default port rationale).
-2. **Terminal screenshots** — include proofs of the exact `ollama pull/create/run`
+2. __Terminal screenshots__ — include proofs of the exact `ollama pull/create/run`
    commands from the baseline run.
-3. **Future sub-experiments** — experiments 2–4 are still outstanding. When you
+3. __Future sub-experiments__ — experiments 2–4 are still outstanding. When you
    run them, log their metrics in separate result files and update the comparison
    table described in the assignment.
-4. **Manual accuracy review** — mark each baseline response as Correct/Incorrect
+4. __Manual accuracy review__ — mark each baseline response as Correct/Incorrect
    and commit the updated JSON so the baseline report satisfies the "answer
    quality" requirement.

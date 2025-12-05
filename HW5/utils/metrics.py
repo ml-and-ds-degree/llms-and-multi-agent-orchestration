@@ -34,6 +34,7 @@ class ExperimentMetrics:
     indexing_time: float = 0.0
     num_chunks: int = 0
     queries: List[QueryMetrics] = field(default_factory=list)
+    metadata: Dict[str, Any] = field(default_factory=dict)
 
     def __post_init__(self):
         pass
@@ -97,18 +98,18 @@ def print_metrics_summary(metrics: ExperimentMetrics):
     print("\n" + "=" * 60)
     print(f"EXPERIMENT SUMMARY: {metrics.experiment_name}")
     print("=" * 60)
-    print(f"\nConfiguration:")
+    print("\nConfiguration:")
     print(f"  - Model: {metrics.model_name}")
     print(f"  - Embedding Model: {metrics.embedding_model}")
     print(f"  - Chunk Size: {metrics.chunk_size}")
     print(f"  - Chunk Overlap: {metrics.chunk_overlap}")
     print(f"  - Persist Directory: {metrics.persist_directory or 'None (in-memory)'}")
 
-    print(f"\nIndexing Metrics:")
+    print("\nIndexing Metrics:")
     print(f"  - Indexing Time: {metrics.indexing_time:.2f}s")
     print(f"  - Number of Chunks: {metrics.num_chunks}")
 
-    print(f"\nQuery Metrics:")
+    print("\nQuery Metrics:")
     print(f"  - Total Queries: {len(metrics.queries)}")
     print(f"  - Average Response Time: {metrics.avg_response_time:.2f}s")
 
