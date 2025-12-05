@@ -1,0 +1,65 @@
+{
+  "experiment_name": "Experiment 1: Baseline+",
+  "model_name": "llama3.2",
+  "embedding_model": "nomic-embed-text",
+  "chunk_size": 1200,
+  "chunk_overlap": 300,
+  "persist_directory": "/workspaces/llms-and-multi-agent-orchestration/HW5/results/chroma_baseline",
+  "indexing_time": 0.0,
+  "num_chunks": 48,
+  "queries": [
+    {
+      "query": "How to report BOI?",
+      "response": "You can report Beneficial Ownership Information electronically by accessing the BOI E-Filing portal at http://boiefiling.fincen.gov (accessible beginning on January 1, 2024). You can submit your report through either of two methods:\n\n* Upload finalized PDF version of BOIR and submit online\n* Fill out Web-based version of BOIR and submit online\n\nBoth methods require the filing to be done online as BOIRs cannot be mailed or faxed to FinCEN.",
+      "response_time": 48.57045139900583,
+      "chunks_retrieved": 3,
+      "is_accurate": true
+    },
+    {
+      "query": "What is the document about?",
+      "response": "The document appears to be a report or instruction guide related to beneficial ownership information reporting requirements, specifically for entities required to file reports with the Financial Crimes Enforcement Network (FinCEN). It provides guidance on who must report, what they must report, and when they must report.",
+      "response_time": 43.612603481000406,
+      "chunks_retrieved": 3,
+      "is_accurate": true
+    },
+    {
+      "query": "What are the main points as a business owner I should be aware of?",
+      "response": "Based on the provided context, as a business owner, you should be aware of the following main points:\n\n1. If your entity is a \"reporting company\" and does not qualify for an exemption, you are required to report beneficial ownership information to FinCEN.\n2. Beneficial ownership information includes information about the entity, its beneficial owners, and in certain cases, its company applicants.\n3. The person submitting beneficial ownership information must certify that it is true, correct, and complete.\n4. You can find more information on how to identify beneficial owners by reviewing Chapter 2 of FinCEN's Small Entity Compliance Guide.\n5. To learn more about the reporting requirements for your entity, review Chapter 3 of FinCEN's Small Entity Compliance Guide.\n\nAdditionally, it is recommended to:\n\n- Review Chapter 1 of FinCEN's Small Entity Compliance Guide to determine if your entity qualifies for an exemption.\n- View interactive flowcharts, checklists, and other aids provided in the Small Entity Compliance Guide to help you determine whether your entity needs to file a BOIR with FinCEN and how to comply with reporting requirements.",
+      "response_time": 49.661396979005076,
+      "chunks_retrieved": 3,
+      "is_accurate": true
+    }
+  ],
+  "metadata": {
+    "vector_store_mode": "reuse",
+    "chunk_stats": {
+      "count": 48,
+      "min": 153,
+      "max": 1198,
+      "mean": 917.375,
+      "median": 1117.5,
+      "stdev": 328.02411147403984,
+      "p10": 383.20000000000005,
+      "p25": 726.5,
+      "p75": 1168.25,
+      "p90": 1181.4,
+      "sample_first5": [
+        153,
+        1058,
+        1198,
+        1170,
+        326
+      ],
+      "chunk_time_s": 0.5762224570062244
+    },
+    "query_set": "baseline",
+    "latency_snapshot": {
+      "min": 43.612603481000406,
+      "max": 49.661396979005076,
+      "mean": 47.28148395300377,
+      "stdev": 2.6322428336579815
+    }
+  },
+  "avg_response_time": 47.28148395300377,
+  "accuracy_rate": 1.0
+}
