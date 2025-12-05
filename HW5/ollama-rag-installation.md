@@ -63,6 +63,8 @@
 * Run times .
 * Answer quality .
 
+> **Status:** ✅ Completed via `sub_experiment_1_report.md`. Baseline+ adds chunk statistics and persisted Chroma evidence to prove the 1:1 replication is stable for later reuse.
+
 ### 4. Sub-experiment 2: Changing One Decision -- And What Breaks?
 
 **Goal:** To understand installation and stack sensitivity: small change $\rightarrow$ technical/behavioral impact .
@@ -111,6 +113,8 @@ The student re-runs the same queries from Experiment 1 and is requested to fill 
 **6.4 Pedagogical Goal**
 To cause them to understand the technical implications of the recommendations in the video: why specifically this chunk size, why `nomic-embed-text`, why Chroma, and why separate Indexing from Retrieval .
 
+> **Status:** ✅ Sub-experiment 2 compares `llama3.2:3b` vs 1200/300 chunking and an aggressive 300/50 + no persistence setup. Findings live in `sub_experiment_2_report.md` with the requested comparison table.
+
 ### 5. Sub-experiment 3: Local Ollama vs. Free Cloud Alternative
 
 **Goal:** To illustrate the differences between :
@@ -145,6 +149,8 @@ The experiment can also be theoretical/simulative if you don't really want to co
 * Understand the tradeoff: cost/time/privacy/installation simplicity .
 * See that the architecture itself (RAG) is identical, only the "engine" changes .
 
+> **Status:** ✅ Script `experiments/experiment_3_local_vs_cloud.py` now outputs `experiment_3_local|hybrid|cloud.json`. Summary plus trade-off analysis captured in `results/sub_experiment_3_report.md`.
+
 ### 6. Sub-experiment 4: "RAG Types" and Advanced Approaches
 
 **Goal:** To link the theory from the chapters on RAG failure types and Context strategies -- to technical implementation .
@@ -166,6 +172,8 @@ The student will experiment with **at least two** variations:
 
 **3.6 Goal of the Experiment**
 To turn the theoretical text description (correct chunking, rerank, contextual) and the anti-patterns strategies into measurable code .
+
+> **Status:** ⏳ Experiment 4 still pending. Plan is to extend the existing runner with contextual chunk summaries and reranking hooks once Sub-experiment 3 synthesis feeds into the final report.
 
 ### 7. Meta-Pedagogical Requirements
 

@@ -1,0 +1,70 @@
+{
+  "experiment_name": "Experiment 3: Cloud",
+  "model_name": "llama3.2",
+  "embedding_model": "nomic-embed-text",
+  "chunk_size": 1200,
+  "chunk_overlap": 300,
+  "persist_directory": null,
+  "indexing_time": 11.056404050003039,
+  "num_chunks": 48,
+  "queries": [
+    {
+      "query": "How to report BOI?",
+      "response": "According to the provided context, you can report Beneficial Ownership Information (BOI) electronically by accessing the BOI E-Filing portal at http://boiefiling.fincen.gov, starting from January 1, 2024.",
+      "response_time": 43.97058894600195,
+      "chunks_retrieved": 3,
+      "is_accurate": true
+    },
+    {
+      "query": "What is the document about?",
+      "response": "The document appears to be about Beneficial Ownership Information Reporting, specifically filing instructions for reporting beneficial ownership information to the Financial Crimes Enforcement Network (FinCEN) in the United States.",
+      "response_time": 39.74722586599819,
+      "chunks_retrieved": 3,
+      "is_accurate": true
+    },
+    {
+      "query": "What are the main points as a business owner I should be aware of?",
+      "response": "Based on the provided context, as a business owner, you should be aware of the following main points:\n\n1. You must certify that the beneficial ownership information submitted to FinCEN is true, correct, and complete.\n2. You need to report beneficial ownership information if your company is a \"reporting company\" (i.e., not exempt) and does not qualify for an exemption.\n3. To determine whether your entity qualifies for an exemption, review Chapter 1 of FinCEN's Small Entity Compliance Guide.\n4. Beneficial ownership information includes information about the entity, its beneficial owners, and in certain cases, its company applicants.\n5. You must provide the specific information required, which is described in these instructions and in Chapter 4 of FinCEN's Small Entity Compliance Guide.\n6. To identify beneficial owners, review Chapter 2 of FinCEN's Small Entity Compliance Guide.\n7. If your reporting company has a principal place of business in the United States or U.S. Territory, the street address should be that of the principal place of business.\n\nThese points highlight the key requirements and procedures for submitting beneficial ownership information to FinCEN as a business owner.",
+      "response_time": 53.81820735099609,
+      "chunks_retrieved": 3,
+      "is_accurate": true
+    }
+  ],
+  "metadata": {
+    "mode": "Cloud",
+    "description": "Embeddings + LLM incur cloud latency, in-memory DB",
+    "vector_store_mode": "memory",
+    "chunk_stats": {
+      "count": 48,
+      "min": 153,
+      "max": 1198,
+      "mean": 917.375,
+      "median": 1117.5,
+      "stdev": 328.02411147403984,
+      "chunk_time_s": 0.5832537170063006
+    },
+    "query_set": "baseline",
+    "latency_snapshot": {
+      "min": 39.74722586599819,
+      "max": 53.81820735099609,
+      "mean": 45.84534072099874,
+      "stdev": 5.895430470637331
+    },
+    "cloud_latency": {
+      "embedding_latency": {
+        "label": "cloud_embeddings",
+        "calls": 4.0,
+        "total_seconds": 2.824,
+        "avg_seconds": 0.706
+      },
+      "llm_latency": {
+        "label": "cloud_llm",
+        "calls": 3.0,
+        "total_seconds": 1.908,
+        "avg_seconds": 0.636
+      }
+    }
+  },
+  "avg_response_time": 45.84534072099874,
+  "accuracy_rate": 1.0
+}
