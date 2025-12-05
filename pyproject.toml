@@ -5,10 +5,17 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
+    "chromadb",
+    "langchain-community>=0.4.1",
+    "langchain-ollama>=1.0.0",
+    "langchain-text-splitters>=1.0.0",
     "matplotlib>=3.10.7",
+    "ollama",
     "pydantic-ai>=1.7.0",
+    "pypdf",
     "reflex>=0.8.17",
     "sentence-transformers>=5.1.2",
+    "unstructured>=0.18.21",
 ]
 
 [project.optional-dependencies]

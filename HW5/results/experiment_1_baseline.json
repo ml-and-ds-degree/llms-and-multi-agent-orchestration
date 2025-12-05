@@ -1,0 +1,35 @@
+{
+  "experiment_name": "Experiment 1: Baseline",
+  "model_name": "llama3.2",
+  "embedding_model": "nomic-embed-text",
+  "chunk_size": 1200,
+  "chunk_overlap": 300,
+  "persist_directory": "/workspaces/llms-and-multi-agent-orchestration/HW5/results/chroma_baseline",
+  "indexing_time": 10.382531862007454,
+  "num_chunks": 48,
+  "queries": [
+    {
+      "query": "How to report BOI?",
+      "response": "According to the provided context, beneficial ownership information (BOI) can be reported electronically by accessing the BOI E-Filing portal at http://boiefiling.fincen.gov, which is accessible beginning on January 1, 2024. The portal allows reporting companies to choose one of two filing methods: upload a finalized PDF version or fill out a web-based version and submit online.",
+      "response_time": 41.761174170998856,
+      "chunks_retrieved": 3,
+      "is_accurate": true
+    },
+    {
+      "query": "What is the document about?",
+      "response": "The document is about Beneficial Ownership Information Reporting Filing Instructions, specifically it provides guidance on who must report, what they must report, and when they must report beneficial ownership information to FinCEN.",
+      "response_time": 42.82911387899367,
+      "chunks_retrieved": 3,
+      "is_accurate": true
+    },
+    {
+      "query": "What are the main points as a business owner I should be aware of?",
+      "response": "Based on the provided context, the main points as a business owner that you should be aware of are:\n\n1. You need to report beneficial ownership information if your entity is a \"reporting company\" and does not qualify for an exemption.\n2. Chapter 1 of FinCEN's Small Entity Compliance Guide can help determine whether your entity qualifies for an exemption.\n3. Beneficial ownership information includes information about the entity, its beneficial owners, and in certain cases, its company applicants.\n4. The person submitting beneficial ownership information to FinCEN must certify that the information is true, correct, and complete.\n5. To learn more about how to identify beneficial owners, review Chapter 2 of FinCEN's Small Entity Compliance Guide.\n6. To learn more about reporting requirements for your entity and how to identify company applicants, review Chapters 3 of FinCEN's Small Entity Compliance Guide.\n\nThese points are mentioned in sections \"WHO\" and \"WHAT\" within the provided document metadata.",
+      "response_time": 54.078247736004414,
+      "chunks_retrieved": 3,
+      "is_accurate": true
+    }
+  ],
+  "avg_response_time": 46.22284526199898,
+  "accuracy_rate": 1.0
+}
