@@ -1,0 +1,74 @@
+{
+  "experiment_name": "Experiment 2: Variation",
+  "model_name": "llama3.2",
+  "embedding_model": "nomic-embed-text",
+  "chunk_size": 300,
+  "chunk_overlap": 50,
+  "persist_directory": null,
+  "indexing_time": 11.15540513099404,
+  "num_chunks": 150,
+  "queries": [
+    {
+      "query": "How to report BOI?",
+      "response": "According to the provided context, reporting Beneficial Ownership Information can be done in one of two methods:\n\n1. Completing and submitting a BOIR (Beneficial Ownership Information Reporting) form electronically by accessing the BOI E-Filing portal.\n2. Either of these online methods.\n\nAdditionally, it is stated that BOIRs cannot be mailed or faxed to FinCEN, implying that only online submissions are allowed.",
+      "response_time": 22.731787463999353,
+      "chunks_retrieved": 3,
+      "is_accurate": true
+    },
+    {
+      "query": "What is the document about?",
+      "response": "Based on the provided context, the document appears to be instructions or guidelines for filing a report related to beneficial ownership information. Specifically, it discusses the process of identifying and reporting certain documents required by Item 31 in the BOI (Beneficial Ownership Information) Report.",
+      "response_time": 17.914411976002157,
+      "chunks_retrieved": 3,
+      "is_accurate": true
+    },
+    {
+      "query": "What are the main points as a business owner I should be aware of?",
+      "response": "Based on the provided context, it appears that you, as a business owner, need to be aware of the following main points when reporting beneficial ownership information:\n\n1. Review Chapter 2 of FinCEN's Small Entity Compliance Guide to identify beneficial owners.\n2. Review Chapter 3 of FinCEN's Small Entity Compliance Guide to learn more about the reporting requirements and how to identify company applicants.\n\nThese chapters are likely to provide instructions on what constitutes beneficial ownership, how to report it, and any other relevant requirements for your business.",
+      "response_time": 21.71307521799463,
+      "chunks_retrieved": 3,
+      "is_accurate": true
+    }
+  ],
+  "metadata": {
+    "vector_store_mode": "memory",
+    "chunk_stats": {
+      "count": 150,
+      "min": 38,
+      "max": 299,
+      "mean": 251.86666666666667,
+      "median": 260.0,
+      "stdev": 44.79593235502031,
+      "p10": 209.9,
+      "p25": 231.0,
+      "p75": 284.75,
+      "p90": 292.1,
+      "sample_first5": [
+        153,
+        216,
+        267,
+        282,
+        290
+      ],
+      "chunk_time_s": 0.5098587079992285
+    },
+    "query_set": "baseline",
+    "latency_snapshot": {
+      "min": 17.914411976002157,
+      "max": 22.731787463999353,
+      "mean": 20.786424885998713,
+      "stdev": 2.0729668394887817
+    },
+    "config": {
+      "model": "llama3.2",
+      "embedding": "nomic-embed-text",
+      "chunk_size": 300,
+      "chunk_overlap": 50,
+      "retriever_k": 3,
+      "persist_dir": null,
+      "no_persist": true
+    }
+  },
+  "avg_response_time": 20.786424885998713,
+  "accuracy_rate": 1.0
+}

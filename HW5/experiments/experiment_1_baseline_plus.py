@@ -1,13 +1,23 @@
-"""Sub-experiment 1 "Baseline+" run with instrumentation.
+"""Instrumented baseline experiment runner with configurable variations.
 
-This script mirrors the video-aligned baseline pipeline while adding:
-- Optional reuse of a persisted Chroma store (warm start) unless --force-reindex is set.
-- Chunk-length statistics to reason about coverage before/after tweaks.
-- CLI arguments for extended queries and custom artifact output paths.
+This script defaults to the exact configuration from the
+"Ollama Course — Build AI Apps Locally" baseline but exposes CLI
+flags so we can drive Sub-experiment 2 (and beyond) without duplicating
+pipeline code.
 
-Usage examples:
+Example invocations:
+    # Baseline (same as video)
     python experiments/experiment_1_baseline_plus.py
-    python experiments/experiment_1_baseline_plus.py --force-reindex --all-queries
+
+    # Change the LLM only (Sub-experiment 2 option 1)
+    python experiments/experiment_1_baseline_plus.py \
+        --model-name llama3.2:3b --persist-dir results/chroma_llama3_3b \
+        --output results/experiment_2_llm_small.json --force-reindex
+
+    # Change chunking + skip persistence (Sub-experiment 2 option 2)
+    python experiments/experiment_1_baseline_plus.py \
+        --chunk-size 300 --chunk-overlap 50 --no-persist --force-reindex \
+        --output results/experiment_2_chunky.json
 """
 
 from __future__ import annotations
@@ -18,8 +28,9 @@ import math
 import os
 import statistics
 import sys
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
 
 import ollama
 from langchain_community.document_loaders import PyPDFLoader
@@ -30,16 +41,15 @@ from langchain_core.runnables import RunnablePassthrough
 from langchain_ollama import ChatOllama, OllamaEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
-# Add HW5 root to PYTHONPATH for absolute-style imports
 BASE_DIR = Path(__file__).resolve().parent.parent
 sys.path.append(str(BASE_DIR))
 
-from queries import (
+from queries import (  # noqa: E402  # pylint: disable=wrong-import-position
     evaluate_query_accuracy,
     get_all_queries,
     get_baseline_queries,
 )
-from utils.metrics import (
+from utils.metrics import (  # noqa: E402  # pylint: disable=wrong-import-position
     ExperimentMetrics,
     QueryMetrics,
     Timer,
@@ -49,46 +59,82 @@ from utils.metrics import (
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO, format="[%(levelname)s] %(message)s")
 
-DOC_PATH = BASE_DIR / "data" / "BOI.pdf"
-MODEL_NAME = "llama3.2"
-EMBEDDING_MODEL = "nomic-embed-text"
-VECTOR_STORE_NAME = "simple-rag"
-PERSIST_DIR = BASE_DIR / "results" / "chroma_baseline"
-PORT = 11434
-CHUNK_SIZE = 1200
-CHUNK_OVERLAP = 300
+DEFAULT_DOC_PATH = BASE_DIR / "data" / "BOI.pdf"
+DEFAULT_MODEL = "llama3.2"
+DEFAULT_EMBEDDING = "nomic-embed-text"
+DEFAULT_VECTOR_STORE = "simple-rag"
+DEFAULT_PERSIST_DIR = BASE_DIR / "results" / "chroma_baseline"
+DEFAULT_CHUNK_SIZE = 1200
+DEFAULT_CHUNK_OVERLAP = 300
 DEFAULT_OUTPUT = BASE_DIR / "results" / "experiment_1_baseline_plus.json"
+DEFAULT_RETRIEVER_K = 3
 
 
-def parse_args() -> argparse.Namespace:
+@dataclass
+class RunConfig:
+    doc_path: Path
+    model_name: str
+    embedding_model: str
+    chunk_size: int
+    chunk_overlap: int
+    vector_store_name: str
+    persist_dir: Optional[Path]
+    retriever_k: int
+    force_reindex: bool
+    use_all_queries: bool
+    output_path: Path
+    no_persist: bool
+
+
+def parse_args() -> RunConfig:
     parser = argparse.ArgumentParser(description="Instrumented Baseline RAG run")
-    parser.add_argument(
-        "--force-reindex",
-        action="store_true",
-        help="Ignore existing Chroma store and rebuild from source document",
+    parser.add_argument("--force-reindex", action="store_true")
+    parser.add_argument("--all-queries", action="store_true")
+    parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
+    parser.add_argument("--doc-path", type=Path, default=DEFAULT_DOC_PATH)
+    parser.add_argument("--model-name", default=DEFAULT_MODEL)
+    parser.add_argument("--embedding-model", default=DEFAULT_EMBEDDING)
+    parser.add_argument("--chunk-size", type=int, default=DEFAULT_CHUNK_SIZE)
+    parser.add_argument("--chunk-overlap", type=int, default=DEFAULT_CHUNK_OVERLAP)
+    parser.add_argument("--persist-dir", type=Path, default=DEFAULT_PERSIST_DIR)
+    parser.add_argument("--vector-store-name", default=DEFAULT_VECTOR_STORE)
+    parser.add_argument("--retriever-k", type=int, default=DEFAULT_RETRIEVER_K)
+    parser.add_argument("--no-persist", action="store_true")
+
+    args = parser.parse_args()
+
+    doc_path = (
+        args.doc_path if args.doc_path.is_absolute() else BASE_DIR / args.doc_path
     )
-    parser.add_argument(
-        "--all-queries",
-        action="store_true",
-        help="Run the extended query set instead of just the three baseline prompts",
+    persist_dir: Optional[Path]
+    if args.no_persist:
+        persist_dir = None
+    else:
+        persist_dir = (
+            args.persist_dir
+            if args.persist_dir.is_absolute()
+            else BASE_DIR / args.persist_dir
+        )
+    output_path = args.output if args.output.is_absolute() else BASE_DIR / args.output
+
+    return RunConfig(
+        doc_path=doc_path,
+        model_name=args.model_name,
+        embedding_model=args.embedding_model,
+        chunk_size=args.chunk_size,
+        chunk_overlap=args.chunk_overlap,
+        vector_store_name=args.vector_store_name,
+        persist_dir=persist_dir,
+        retriever_k=args.retriever_k,
+        force_reindex=args.force_reindex,
+        use_all_queries=args.all_queries,
+        output_path=output_path,
+        no_persist=args.no_persist,
     )
-    parser.add_argument(
-        "--output",
-        type=Path,
-        default=DEFAULT_OUTPUT,
-        help="Where to store the metrics JSON output",
-    )
-    parser.add_argument(
-        "--doc-path",
-        type=Path,
-        default=DOC_PATH,
-        help="Path to the PDF document to ingest",
-    )
-    return parser.parse_args()
 
 
-def ensure_ollama_up() -> None:
-    logger.info("Checking Ollama server on localhost:%s", PORT)
+def ensure_ollama_up(config: RunConfig) -> None:
+    logger.info("Checking Ollama server on localhost:11434")
     try:
         ollama.list()
     except Exception as exc:  # pragma: no cover - network validation
@@ -96,24 +142,24 @@ def ensure_ollama_up() -> None:
             "Ollama server not reachable. Run 'ollama serve' locally first."
         ) from exc
 
-    for model in {MODEL_NAME, EMBEDDING_MODEL}:
+    for model in {config.model_name, config.embedding_model}:
         logger.info("Ensuring model '%s' is pulled", model)
         ollama.pull(model)
 
 
-def ingest_and_split(doc_path: Path):
-    logger.info("Loading PDF from %s", doc_path)
-    loader = PyPDFLoader(file_path=str(doc_path))
+def ingest_and_split(config: RunConfig):
+    logger.info("Loading PDF from %s", config.doc_path)
+    loader = PyPDFLoader(file_path=str(config.doc_path))
     documents = loader.load()
 
     logger.info(
         "Splitting documents with chunk_size=%s, overlap=%s",
-        CHUNK_SIZE,
-        CHUNK_OVERLAP,
+        config.chunk_size,
+        config.chunk_overlap,
     )
     text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size=CHUNK_SIZE,
-        chunk_overlap=CHUNK_OVERLAP,
+        chunk_size=config.chunk_size,
+        chunk_overlap=config.chunk_overlap,
     )
     chunks = text_splitter.split_documents(documents)
     logger.info("Generated %s chunks", len(chunks))
@@ -147,7 +193,7 @@ def summarize_chunks(chunks) -> Dict[str, float]:  # type: ignore[no-untyped-def
         "max": max(lengths),
         "mean": statistics.fmean(lengths),
         "median": statistics.median(lengths),
-        "stdev": statistics.pstdev(lengths),
+        "stdev": statistics.pstdev(lengths) if len(lengths) > 1 else 0.0,
         "p10": percentile(sorted_lengths, 0.10),
         "p25": percentile(sorted_lengths, 0.25),
         "p75": percentile(sorted_lengths, 0.75),
@@ -157,36 +203,44 @@ def summarize_chunks(chunks) -> Dict[str, float]:  # type: ignore[no-untyped-def
     return summary
 
 
-def build_vector_store(
-    chunks,
-    force_reindex: bool,
-) -> Tuple[Chroma, float, bool]:
-    store_ready = PERSIST_DIR.exists() and any(PERSIST_DIR.iterdir())
-    embeddings = OllamaEmbeddings(model=EMBEDDING_MODEL)
+def build_vector_store(chunks, config: RunConfig) -> Tuple[Chroma, float, str]:
+    embeddings = OllamaEmbeddings(model=config.embedding_model)
 
-    if store_ready and not force_reindex:
-        logger.info("Reusing persisted Chroma store at %s", PERSIST_DIR)
+    if config.no_persist or config.persist_dir is None:
+        logger.info("Building in-memory Chroma store (no persistence)")
+        with Timer() as index_timer:
+            vector_db = Chroma.from_documents(
+                documents=chunks,
+                embedding=embeddings,
+                collection_name=config.vector_store_name,
+            )
+        return vector_db, index_timer.get_elapsed(), "memory"
+
+    store_ready = config.persist_dir.exists() and any(config.persist_dir.iterdir())
+
+    if store_ready and not config.force_reindex:
+        logger.info("Reusing persisted Chroma store at %s", config.persist_dir)
         vector_db = Chroma(
-            collection_name=VECTOR_STORE_NAME,
+            collection_name=config.vector_store_name,
             embedding_function=embeddings,
-            persist_directory=str(PERSIST_DIR),
+            persist_directory=str(config.persist_dir),
         )
-        return vector_db, 0.0, True
+        return vector_db, 0.0, "reuse"
 
-    logger.info("(Re)building Chroma store at %s", PERSIST_DIR)
+    logger.info("(Re)building Chroma store at %s", config.persist_dir)
     with Timer() as index_timer:
         vector_db = Chroma.from_documents(
             documents=chunks,
             embedding=embeddings,
-            collection_name=VECTOR_STORE_NAME,
-            persist_directory=str(PERSIST_DIR),
+            collection_name=config.vector_store_name,
+            persist_directory=str(config.persist_dir),
         )
-    return vector_db, index_timer.get_elapsed(), False
+    return vector_db, index_timer.get_elapsed(), "rebuild"
 
 
-def create_chain(vector_db: Chroma):
-    llm = ChatOllama(model=MODEL_NAME)
-    retriever = vector_db.as_retriever(search_kwargs={"k": 3})
+def create_chain(vector_db: Chroma, config: RunConfig):
+    llm = ChatOllama(model=config.model_name)
+    retriever = vector_db.as_retriever(search_kwargs={"k": config.retriever_k})
 
     template = """Answer the question based ONLY on the following context:\n{context}\nQuestion: {question}\n"""
     prompt = ChatPromptTemplate.from_template(template)
@@ -237,29 +291,41 @@ def run_queries(
     return collected, latency_summary
 
 
-def run_experiment(args: argparse.Namespace) -> ExperimentMetrics:
-    ensure_ollama_up()
+def run_experiment(config: RunConfig) -> ExperimentMetrics:
+    ensure_ollama_up(config)
 
     with Timer() as chunk_timer:
-        _, chunks = ingest_and_split(args.doc_path)
+        _, chunks = ingest_and_split(config)
     chunk_stats = summarize_chunks(chunks)
     chunk_stats["chunk_time_s"] = chunk_timer.get_elapsed()
 
-    vector_db, indexing_time, reused_store = build_vector_store(
-        chunks=chunks,
-        force_reindex=args.force_reindex,
+    vector_db, indexing_time, store_mode = build_vector_store(chunks, config)
+
+    chain = create_chain(vector_db, config)
+    query_set = get_all_queries() if config.use_all_queries else get_baseline_queries()
+
+    experiment_label = (
+        "Experiment 2: Variation"
+        if (
+            config.model_name != DEFAULT_MODEL
+            or config.embedding_model != DEFAULT_EMBEDDING
+            or config.chunk_size != DEFAULT_CHUNK_SIZE
+            or config.chunk_overlap != DEFAULT_CHUNK_OVERLAP
+            or config.retriever_k != DEFAULT_RETRIEVER_K
+            or config.no_persist
+        )
+        else "Experiment 1: Baseline+"
     )
 
-    chain = create_chain(vector_db)
-    query_set = get_all_queries() if args.all_queries else get_baseline_queries()
-
     metrics = ExperimentMetrics(
-        experiment_name="Experiment 1: Baseline+",
-        model_name=MODEL_NAME,
-        embedding_model=EMBEDDING_MODEL,
-        chunk_size=CHUNK_SIZE,
-        chunk_overlap=CHUNK_OVERLAP,
-        persist_directory=str(PERSIST_DIR.resolve()),
+        experiment_name=experiment_label,
+        model_name=config.model_name,
+        embedding_model=config.embedding_model,
+        chunk_size=config.chunk_size,
+        chunk_overlap=config.chunk_overlap,
+        persist_directory=str(config.persist_dir.resolve())
+        if config.persist_dir
+        else None,
     )
     metrics.num_chunks = int(chunk_stats.get("count", 0))
     metrics.indexing_time = indexing_time
@@ -268,25 +334,35 @@ def run_experiment(args: argparse.Namespace) -> ExperimentMetrics:
     metrics.queries.extend(queries_metrics)
     metrics.metadata.update(
         {
-            "vector_store_mode": "reuse" if reused_store else "rebuild",
+            "vector_store_mode": store_mode,
             "chunk_stats": chunk_stats,
-            "query_set": "extended" if args.all_queries else "baseline",
+            "query_set": "extended" if config.use_all_queries else "baseline",
             "latency_snapshot": latency_stats,
+            "config": {
+                "model": config.model_name,
+                "embedding": config.embedding_model,
+                "chunk_size": config.chunk_size,
+                "chunk_overlap": config.chunk_overlap,
+                "retriever_k": config.retriever_k,
+                "persist_dir": str(config.persist_dir) if config.persist_dir else None,
+                "no_persist": config.no_persist,
+            },
         }
     )
 
     print_metrics_summary(metrics)
-    metrics.save(str(args.output))
+    metrics.save(str(config.output_path))
     return metrics
 
 
 def main():
-    args = parse_args()
+    config = parse_args()
     os.chdir(BASE_DIR)
-    metrics = run_experiment(args)
-    logger.info("\n✅ Instrumented baseline experiment completed!")
-    logger.info("Results saved to: %s", args.output)
-    logger.info("Vector store directory: %s", PERSIST_DIR)
+    metrics = run_experiment(config)
+    logger.info("\n✅ Instrumented experiment completed!")
+    logger.info("Results saved to: %s", config.output_path)
+    if config.persist_dir:
+        logger.info("Vector store directory: %s", config.persist_dir)
 
 
 if __name__ == "__main__":

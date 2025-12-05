@@ -1,0 +1,74 @@
+{
+  "experiment_name": "Experiment 2: Variation",
+  "model_name": "llama3.2:3b",
+  "embedding_model": "nomic-embed-text",
+  "chunk_size": 1200,
+  "chunk_overlap": 300,
+  "persist_directory": "/workspaces/llms-and-multi-agent-orchestration/HW5/results/chroma_llama32_3b",
+  "indexing_time": 9.595002198999282,
+  "num_chunks": 48,
+  "queries": [
+    {
+      "query": "How to report BOI?",
+      "response": "According to the document, you can report Beneficial Ownership Information by accessing the BOI E-Filing portal at http://boiefiling.fincen.gov, starting from January 1, 2024. You can submit your report either by uploading a finalized PDF version or by filling out a web-based version and submitting it online.",
+      "response_time": 47.28740826399007,
+      "chunks_retrieved": 3,
+      "is_accurate": true
+    },
+    {
+      "query": "What is the document about?",
+      "response": "The document appears to be a set of filing instructions for beneficial ownership information reporting, specifically designed for businesses and entities required to report their beneficial ownership information to the Financial Crimes Enforcement Network (FinCEN).",
+      "response_time": 36.66535962099442,
+      "chunks_retrieved": 3,
+      "is_accurate": true
+    },
+    {
+      "query": "What are the main points as a business owner I should be aware of?",
+      "response": "Based on the provided context, as a business owner, you should be aware of the following main points:\n\n1. Reporting beneficial ownership information: You must certify that the information is true, correct, and complete, and it's required for reporting companies.\n2. Reviewing FinCEN's Small Entity Compliance Guide: The guide may help determine if your entity qualifies for an exemption from reporting beneficial ownership information.\n3. Identifying beneficial owners: You can learn more about how to identify beneficial owners by reviewing Chapter 2 of FinCEN's Small Entity Compliance Guide.\n4. Company applicants: If you have company applicants, review Chapter 3 of FinCEN's Small Entity Compliance Guide for more information on reporting requirements and identifying these applicants.\n\nAdditionally, it is essential to understand the difference between a \"reporting company\" (created or registered before January 1, 2024) and those that do not need to report company applicants.",
+      "response_time": 49.54365045999293,
+      "chunks_retrieved": 3,
+      "is_accurate": true
+    }
+  ],
+  "metadata": {
+    "vector_store_mode": "rebuild",
+    "chunk_stats": {
+      "count": 48,
+      "min": 153,
+      "max": 1198,
+      "mean": 917.375,
+      "median": 1117.5,
+      "stdev": 328.02411147403984,
+      "p10": 383.20000000000005,
+      "p25": 726.5,
+      "p75": 1168.25,
+      "p90": 1181.4,
+      "sample_first5": [
+        153,
+        1058,
+        1198,
+        1170,
+        326
+      ],
+      "chunk_time_s": 0.45837865499197505
+    },
+    "query_set": "baseline",
+    "latency_snapshot": {
+      "min": 36.66535962099442,
+      "max": 49.54365045999293,
+      "mean": 44.498806114992476,
+      "stdev": 5.615147382601442
+    },
+    "config": {
+      "model": "llama3.2:3b",
+      "embedding": "nomic-embed-text",
+      "chunk_size": 1200,
+      "chunk_overlap": 300,
+      "retriever_k": 3,
+      "persist_dir": "/workspaces/llms-and-multi-agent-orchestration/HW5/results/chroma_llama32_3b",
+      "no_persist": false
+    }
+  },
+  "avg_response_time": 44.498806114992476,
+  "accuracy_rate": 1.0
+}
