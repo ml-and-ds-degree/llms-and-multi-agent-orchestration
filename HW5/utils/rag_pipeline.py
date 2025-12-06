@@ -1,20 +1,21 @@
-"""
-Shared RAG pipeline utilities extracted from the experiment runners.
+"""Shared RAG pipeline utilities extracted from the experiment runners.
 Provides reusable building blocks for loading documents, chunking,
-vector store management, chain construction, and query execution.
-"""
+vector store management, chain construction, and query execution."""
 
 from __future__ import annotations
 
 import logging
 import math
 import statistics
+import time
 from pathlib import Path
 from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple
 
 import ollama
 from langchain_community.document_loaders import PyPDFLoader
-from langchain_community.vectorstores import Chroma
+from langchain_chroma import Chroma
+from langchain_core.documents import Document
+from langchain_core.embeddings import Embeddings
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import Runnable, RunnableLambda, RunnablePassthrough
@@ -30,6 +31,70 @@ DEFAULT_PROMPT_TEMPLATE = (
     "{context}\n"
     "Question: {question}\n"
 )
+
+
+class SequentialOllamaEmbeddings(Embeddings):
+    """
+    Wrapper that processes embeddings one at a time to avoid Ollama batch issues.
+
+    This is a workaround for Ollama API crashes when processing certain text
+    combinations in batch mode. By processing documents sequentially, we ensure
+    more reliable embedding generation.
+    """
+
+    def __init__(self, model: str = "nomic-embed-text", delay: float = 0.05):
+        """
+        Initialize sequential embeddings.
+
+        Args:
+            model: Name of the Ollama embedding model
+            delay: Delay in seconds between embeddings (to avoid overloading)
+        """
+        self.model = model
+        self.delay = delay
+        self.embeddings = OllamaEmbeddings(model=model)
+        self._failed_indices = []
+
+    def embed_documents(self, texts: List[str]) -> List[List[float]]:
+        """
+        Process each document sequentially.
+
+        Args:
+            texts: List of text documents to embed
+
+        Returns:
+            List of embedding vectors (one per document)
+        """
+        results = []
+        self._failed_indices = []
+
+        for i, text in enumerate(texts):
+            try:
+                result = self.embeddings.embed_query(text)
+                results.append(result)
+                if self.delay and i < len(texts) - 1:
+                    time.sleep(self.delay)
+            except Exception as e:
+                logger.warning(
+                    f"Failed to embed document {i} (length {len(text)}): {e}"
+                )
+                logger.debug(f"Problematic text preview: {text[:100]}...")
+                self._failed_indices.append(i)
+                # Return a zero vector as fallback
+                # Note: This should rarely happen with sequential processing
+                results.append([0.0] * 768)
+
+        if self._failed_indices:
+            logger.warning(
+                f"Failed to embed {len(self._failed_indices)} documents at indices: "
+                f"{self._failed_indices[:10]}{'...' if len(self._failed_indices) > 10 else ''}"
+            )
+
+        return results
+
+    def embed_query(self, text: str) -> List[float]:
+        """Embed a single query text."""
+        return self.embeddings.embed_query(text)
 
 
 def ensure_ollama_models(models: Iterable[str]) -> None:
@@ -112,8 +177,40 @@ def summarize_chunks(chunks) -> Dict[str, float]:  # type: ignore[no-untyped-def
 
 
 def build_embeddings(model_name: str):
-    """Create an Ollama embeddings runnable."""
-    return OllamaEmbeddings(model=model_name)
+    """
+    Create an Ollama embeddings runnable with sequential processing.
+
+    Uses SequentialOllamaEmbeddings to avoid batch processing issues
+    in the Ollama API that can cause crashes with certain text combinations.
+
+    Args:
+        model_name: Name of the Ollama embedding model
+
+    Returns:
+        Embeddings instance that processes documents sequentially
+    """
+    return SequentialOllamaEmbeddings(model=model_name, delay=0.05)
+
+
+def attach_contextual_metadata(
+    chunks: List[Document],
+    *,
+    summary_fn: Callable[[str], str],
+    metadata_key: str = "context_summary",
+    include_in_content: bool = True,
+) -> List[Document]:
+    """Augment each chunk with an LLM-generated summary for contextual retrieval."""
+    enriched: List[Document] = []
+    for chunk in chunks:
+        summary = summary_fn(chunk.page_content)
+        new_meta = {**getattr(chunk, "metadata", {}), metadata_key: summary}
+        new_content = (
+            f"Summary: {summary}\n\n{chunk.page_content}"
+            if include_in_content
+            else chunk.page_content
+        )
+        enriched.append(Document(page_content=new_content, metadata=new_meta))
+    return enriched
 
 
 def build_vector_store(
@@ -167,9 +264,13 @@ def build_llm(model_name: str) -> ChatOllama:
     return ChatOllama(model=model_name)
 
 
-def build_retriever(vector_db: Chroma, retriever_k: int):
+def build_retriever(
+    vector_db: Chroma, retriever_k: int, *, search_type: str = "similarity"
+):
     """Create a retriever for the given vector store."""
-    return vector_db.as_retriever(search_kwargs={"k": retriever_k})
+    return vector_db.as_retriever(
+        search_kwargs={"k": retriever_k}, search_type=search_type
+    )
 
 
 def build_chain(
@@ -177,10 +278,13 @@ def build_chain(
     llm,
     prompt_template: str = DEFAULT_PROMPT_TEMPLATE,
     llm_invoker: Optional[Callable[[Any], Any]] = None,
+    *,
+    reranker: Optional[Callable[[List[Document], str], List[Document]]] = None,
 ):
     """
     Assemble the RAG chain. If llm_invoker is provided, it is wrapped in a
     RunnableLambda so non-LangChain-native LLM adapters can be used.
+    When a reranker is supplied, retrieved documents are reranked before prompting.
     """
     prompt = ChatPromptTemplate.from_template(prompt_template)
     llm_stage = (
@@ -189,8 +293,18 @@ def build_chain(
         else llm
     )
 
+    retriever_stage: Runnable = retriever
+    if reranker:
+
+        def rerank_with_question(question: Any):
+            q_text = question if isinstance(question, str) else str(question)
+            docs = retriever.invoke(q_text)
+            return reranker(docs, q_text)
+
+        retriever_stage = RunnableLambda(rerank_with_question)
+
     chain = (
-        {"context": retriever, "question": RunnablePassthrough()}
+        {"context": retriever_stage, "question": RunnablePassthrough()}
         | prompt
         | llm_stage
         | StrOutputParser()

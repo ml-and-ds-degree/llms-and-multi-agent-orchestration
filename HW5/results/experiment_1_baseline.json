@@ -5,31 +5,32 @@
   "chunk_size": 1200,
   "chunk_overlap": 300,
   "persist_directory": "/workspaces/llms-and-multi-agent-orchestration/HW5/results/chroma_baseline",
-  "indexing_time": 10.382531862007454,
+  "indexing_time": 7.400079405997531,
   "num_chunks": 48,
   "queries": [
     {
       "query": "How to report BOI?",
-      "response": "According to the provided context, beneficial ownership information (BOI) can be reported electronically by accessing the BOI E-Filing portal at http://boiefiling.fincen.gov, which is accessible beginning on January 1, 2024. The portal allows reporting companies to choose one of two filing methods: upload a finalized PDF version or fill out a web-based version and submit online.",
-      "response_time": 41.761174170998856,
+      "response": "According to the document, to file a BOIR with FinCEN, you can refer to Chapter 4 of FinCEN's Small Entity Compliance Guide. The guide includes interactive flowcharts, checklists, and other tools to help determine whether an entity needs to file a BOIR and how to comply with the reporting requirements.",
+      "response_time": 4.744097404007334,
       "chunks_retrieved": 3,
       "is_accurate": true
     },
     {
       "query": "What is the document about?",
-      "response": "The document is about Beneficial Ownership Information Reporting Filing Instructions, specifically it provides guidance on who must report, what they must report, and when they must report beneficial ownership information to FinCEN.",
-      "response_time": 42.82911387899367,
+      "response": "The document appears to be instructions for filing beneficial ownership information, specifically BOIR (Beneficial Ownership Information Reporting) reports. It provides guidance on identifying a company's applicant document number and the jurisdiction in which it was issued.",
+      "response_time": 4.18480986400391,
       "chunks_retrieved": 3,
       "is_accurate": true
     },
     {
       "query": "What are the main points as a business owner I should be aware of?",
-      "response": "Based on the provided context, the main points as a business owner that you should be aware of are:\n\n1. You need to report beneficial ownership information if your entity is a \"reporting company\" and does not qualify for an exemption.\n2. Chapter 1 of FinCEN's Small Entity Compliance Guide can help determine whether your entity qualifies for an exemption.\n3. Beneficial ownership information includes information about the entity, its beneficial owners, and in certain cases, its company applicants.\n4. The person submitting beneficial ownership information to FinCEN must certify that the information is true, correct, and complete.\n5. To learn more about how to identify beneficial owners, review Chapter 2 of FinCEN's Small Entity Compliance Guide.\n6. To learn more about reporting requirements for your entity and how to identify company applicants, review Chapters 3 of FinCEN's Small Entity Compliance Guide.\n\nThese points are mentioned in sections \"WHO\" and \"WHAT\" within the provided document metadata.",
-      "response_time": 54.078247736004414,
+      "response": "Based on the provided context, here are the main points as a business owner you should be aware of:\n\n1. Reporting beneficial ownership information: You need to report your beneficial owners' information to FinCEN through Beneficial Ownership Information Reports (BOIRs). This includes providing details about the entity, its beneficial owners, and in certain cases, its company applicants.\n2. Use of \"Parent/Guardian\" vs. \"minor child\": If one of your beneficial owners is a minor child, you can report their parent or legal guardian's information instead using Item 35.\n3. Use of FinCEN Identifier: You can provide a FinCEN Identifier for a beneficial owner instead of reporting the owner's personal information (Items 36-51).",
+      "response_time": 7.989274655992631,
       "chunks_retrieved": 3,
       "is_accurate": true
     }
   ],
-  "avg_response_time": 46.22284526199898,
+  "metadata": {},
+  "avg_response_time": 5.639393974667958,
   "accuracy_rate": 1.0
 }

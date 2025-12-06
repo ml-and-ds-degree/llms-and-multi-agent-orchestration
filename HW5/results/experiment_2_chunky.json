@@ -4,34 +4,34 @@
   "embedding_model": "nomic-embed-text",
   "chunk_size": 300,
   "chunk_overlap": 50,
-  "persist_directory": null,
-  "indexing_time": 11.15540513099404,
+  "persist_directory": "/workspaces/llms-and-multi-agent-orchestration/HW5/results/chroma_llama32_3b",
+  "indexing_time": 14.927435347010032,
   "num_chunks": 150,
   "queries": [
     {
       "query": "How to report BOI?",
-      "response": "According to the provided context, reporting Beneficial Ownership Information can be done in one of two methods:\n\n1. Completing and submitting a BOIR (Beneficial Ownership Information Reporting) form electronically by accessing the BOI E-Filing portal.\n2. Either of these online methods.\n\nAdditionally, it is stated that BOIRs cannot be mailed or faxed to FinCEN, implying that only online submissions are allowed.",
-      "response_time": 22.731787463999353,
+      "response": "According to the context, it is recommended to file out a Web-based version of BOIR and submit it online. Additionally, reporting companies can also submit their BOIR through either of these methods.",
+      "response_time": 2.9804109999968205,
       "chunks_retrieved": 3,
       "is_accurate": true
     },
     {
       "query": "What is the document about?",
-      "response": "Based on the provided context, the document appears to be instructions or guidelines for filing a report related to beneficial ownership information. Specifically, it discusses the process of identifying and reporting certain documents required by Item 31 in the BOI (Beneficial Ownership Information) Report.",
-      "response_time": 17.914411976002157,
+      "response": "The document appears to be instructions for filing a report related to beneficial ownership information, specifically BOIR (Beneficial Ownership Information Reporting). It provides guidance on how to identify and enter document numbers from various types of identifying documents, such as driver's licenses, passports, and other identification documents.",
+      "response_time": 3.1098666539910482,
       "chunks_retrieved": 3,
       "is_accurate": true
     },
     {
       "query": "What are the main points as a business owner I should be aware of?",
-      "response": "Based on the provided context, it appears that you, as a business owner, need to be aware of the following main points when reporting beneficial ownership information:\n\n1. Review Chapter 2 of FinCEN's Small Entity Compliance Guide to identify beneficial owners.\n2. Review Chapter 3 of FinCEN's Small Entity Compliance Guide to learn more about the reporting requirements and how to identify company applicants.\n\nThese chapters are likely to provide instructions on what constitutes beneficial ownership, how to report it, and any other relevant requirements for your business.",
-      "response_time": 21.71307521799463,
+      "response": "As a business owner, you should be aware of the following main points from the provided context:\n\n1. You need to report beneficial ownership information to FinCEN (Financial Crimes Enforcement Network) through Beneficial Ownership Information Reports (BOIRs).\n2. The reporting requirements for beneficial ownership can be found on FinCEN's website.\n3. If you are a company applicant, you will need to provide information about yourself and your beneficial owners.\n\nThese points highlight the importance of accurately reporting beneficial ownership information to avoid potential issues or penalties.",
+      "response_time": 4.885937038998236,
       "chunks_retrieved": 3,
       "is_accurate": true
     }
   ],
   "metadata": {
-    "vector_store_mode": "memory",
+    "vector_store_mode": "rebuild",
     "chunk_stats": {
       "count": 150,
       "min": 38,
@@ -50,14 +50,14 @@
         282,
         290
       ],
-      "chunk_time_s": 0.5098587079992285
+      "chunk_time_s": 0.489849735997268
     },
     "query_set": "baseline",
     "latency_snapshot": {
-      "min": 17.914411976002157,
-      "max": 22.731787463999353,
-      "mean": 20.786424885998713,
-      "stdev": 2.0729668394887817
+      "min": 2.9804109999968205,
+      "max": 4.885937038998236,
+      "mean": 3.658738230995368,
+      "stdev": 0.8693684977654806
     },
     "config": {
       "model": "llama3.2",
@@ -65,10 +65,10 @@
       "chunk_size": 300,
       "chunk_overlap": 50,
       "retriever_k": 3,
-      "persist_dir": null,
-      "no_persist": true
+      "persist_dir": "/workspaces/llms-and-multi-agent-orchestration/HW5/results/chroma_llama32_3b",
+      "no_persist": false
     }
   },
-  "avg_response_time": 20.786424885998713,
+  "avg_response_time": 3.658738230995368,
   "accuracy_rate": 1.0
 }

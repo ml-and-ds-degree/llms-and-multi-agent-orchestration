@@ -38,16 +38,16 @@
 | --- | --- |
 | Indexing time | **0.00 s** (store reuse) |
 | Number of chunks | **48** |
-| Avg response time | **47.28 s** across 3 questions |
+| Avg response time | **6.04 s** across 3 questions |
 | Accuracy | **100%** (auto-eval via keyword matcher + manual confirmation) |
 
 ### Query-level view
 
 | Question | Response time (s) | Accurate? |
 | --- | --- | --- |
-| How to report BOI? | 48.57 | ✅ |
-| What is the document about? | 43.61 | ✅ |
-| What are the main points as a business owner I should be aware of? | 49.66 | ✅ |
+| How to report BOI? | 5.21 | ✅ |
+| What is the document about? | 4.11 | ✅ |
+| What are the main points as a business owner I should be aware of? | 8.78 | ✅ |
 
 ## Creative instrumentation: chunk health check
 

@@ -1,9 +1,11 @@
+#!/usr/bin/env -S uv run
+
 """Sub-experiment 3: Local Ollama vs. Cloud / Hybrid comparison.
 
 This runner executes the RAG pipeline in three modes:
-1. local  – All components on the laptop (Ollama LLM + embeddings + Chroma persistence).
-2. hybrid – Local embeddings/vector store, but LLM calls pay simulated cloud latency.
-3. cloud  – Both embeddings and LLM pay simulated cloud latency and the vector store
+1. local  - All components on the laptop (Ollama LLM + embeddings + Chroma persistence).
+2. hybrid - Local embeddings/vector store, but LLM calls pay simulated cloud latency.
+3. cloud  - Both embeddings and LLM pay simulated cloud latency and the vector store
              lives in memory (no persistence) to mimic ephemeral SaaS usage.
 
 The "cloud" behaviour uses real Ollama computation underneath (so we can execute
@@ -25,9 +27,6 @@ from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
 from langchain_ollama import ChatOllama
-
-from queries import evaluate_query_accuracy, get_all_queries, get_baseline_queries
-from utils.metrics import ExperimentMetrics, Timer, print_metrics_summary
 from utils.rag_pipeline import (
     DEFAULT_PROMPT_TEMPLATE,
     build_chain,
@@ -41,6 +40,9 @@ from utils.rag_pipeline import (
     split_documents,
     summarize_chunks,
 )
+
+from HW5.queries import evaluate_query_accuracy, get_all_queries, get_baseline_queries
+from HW5.utils.metrics import ExperimentMetrics, Timer, print_metrics_summary
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -237,9 +239,7 @@ def run_experiment(config: RunConfig) -> ExperimentMetrics:
 
     with Timer() as chunk_timer:
         documents = load_documents(config.doc_path)
-        chunks = split_documents(
-            documents, config.chunk_size, config.chunk_overlap
-        )
+        chunks = split_documents(documents, config.chunk_size, config.chunk_overlap)
     chunk_stats = summarize_chunks(chunks)
     chunk_stats["chunk_time_s"] = chunk_timer.get_elapsed()
 

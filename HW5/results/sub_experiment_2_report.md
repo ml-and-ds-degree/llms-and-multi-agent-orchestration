@@ -16,37 +16,37 @@ Both runs used the same `experiment_1_baseline_plus.py` driver via different CLI
 
 ## Metrics snapshots
 
-### Variation A — Smaller LLM (`llama3.2:3b`)
+### Variation A — Smaller LLM (`llama3.2:1b`)
 
 Source: `results/experiment_2_llm_small.json`
 
 | Metric | Value |
 | --- | --- |
-| Indexing time | **9.60 s** (forced rebuild to new persist dir) |
-| Avg response time | **44.50 s** |
+| Indexing time | **6.05 s** (forced rebuild to new persist dir) |
+| Avg response time | **4.48 s** |
 | Accuracy | **100%** |
-| Notes | Latency slightly lower than baseline despite smaller model; indicates KV cache still effective |
+| Notes | Latency lower than baseline with smaller 1B model; indicates efficient inference |
 
-### Variation B — Chunk size 300, overlap 50, no persistence
+### Variation B — Chunk size 300, overlap 50
 
 Source: `results/experiment_2_chunky.json`
 
 | Metric | Value |
 | --- | --- |
-| Indexing time | **11.16 s** (in-memory rebuild each run) |
-| Avg response time | **20.79 s** |
+| Indexing time | **14.93 s** (rebuild with many more chunks) |
+| Avg response time | **3.66 s** |
 | Accuracy | **100%** |
-| Notes | Latency halved due to shorter contexts, but retriever now samples from 150 micro-chunks, raising risk of missing multi-sentence answers |
+| Notes | Latency reduced due to shorter contexts, retriever now samples from 150 micro-chunks |
 
 ### Side-by-side vs Baseline+
 
-| Metric | Baseline+ | Smaller LLM (3B) | Chunky + no persist |
+| Metric | Baseline+ | Smaller LLM (1B) | Chunky (300/50) |
 | --- | --- | --- | --- |
-| Avg response time | 47.28 s | 44.50 s (-6%) | 20.79 s (-56%) |
-| Indexing time | 0.00 s (reuse) | 9.60 s | 11.16 s |
+| Avg response time | 6.04 s | 4.48 s (-26%) | 3.66 s (-39%) |
+| Indexing time | 0.00 s (reuse) | 6.05 s | 14.93 s |
 | Num chunks | 48 | 48 | 150 |
 | Accuracy | 100% | 100% | 100% |
-| Vector store | persisted | new persisted dir | in-memory (stateless) |
+| Vector store | persisted | new persisted dir | persisted |
 
 ## Observations & “what broke”
 

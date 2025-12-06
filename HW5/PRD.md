@@ -73,13 +73,13 @@ unstructured
 
 ### 3.1 Experiment Structure
 
-The project currently covers **three executed sub-experiments** with an **advanced RAG track planned**:
+The project currently covers **four executed sub-experiments**:
 
 ```txt
 Experiment 1 (Baseline replication)  ✅ completed
 Experiment 2 (Parameter variations)  ✅ completed
 Experiment 3 (Local vs Cloud modes) ✅ completed
-Experiment 4 (Advanced techniques)  ⏳ planned (contextual retrieval + reranking)
+Experiment 4 (Advanced techniques)  ✅ completed (contextual retrieval + reranking)
 ```
 
 ---
@@ -113,7 +113,7 @@ Experiment 4 (Advanced techniques)  ⏳ planned (contextual retrieval + rerankin
 
 - Indexing Time: **0.00 s** (reused persisted store)
 - Number of Chunks: **48**
-- Avg Response Time: **47.28 s** across 3 queries
+- Avg Response Time: **6.04 s** across 3 queries
 - Accuracy: **100%** (auto-eval + manual spot check)
 
 **Takeaways:** Persistence prevents cold-start cost; chunk distribution is healthy (min 153, max 1,198 characters), so recall is strong even with `k=3`.
@@ -124,40 +124,40 @@ Experiment 4 (Advanced techniques)  ⏳ planned (contextual retrieval + rerankin
 
 **Objective**: Measure how specific deviations affect latency, accuracy, and startup cost using the same driver (`experiment_1_baseline_plus.py`).
 
-#### Variation A: Smaller LLM (`llama3.2:3b`)
+#### Variation A: Smaller LLM (`llama3.2:1b`)
 
 | Parameter | Baseline | Variation A | Notes |
 |-----------|----------|-------------|-------|
-| LLM Model | `llama3.2` | `llama3.2:3b` | Persisted to a fresh Chroma dir |
+| LLM Model | `llama3.2` | `llama3.2:1b` | Persisted to a fresh Chroma dir |
 | Embedding | `nomic-embed-text` | same | |
 | Chunking | 1200 / 300 | same | |
 | Persistence | yes | yes | Forced rebuild |
 
 **Observed Metrics (experiment_2_llm_small.json):**
 
-- Indexing Time: **9.60 s**
-- Avg Response Time: **44.50 s** (-6% vs baseline+)
+- Indexing Time: **6.05 s**
+- Avg Response Time: **4.48 s** (-26% vs baseline+)
 - Accuracy: **100%**
 
-**Interpretation:** Smaller model retained accuracy and shaved a few seconds per query; KV cache still helps.
+**Interpretation:** Smaller model retained accuracy while improving latency (~4.5 s/query), showing the 1B variant is sufficient for this corpus.
 
-#### Variation B: Aggressive Chunking + No Persistence
+#### Variation B: Aggressive Chunking
 
 | Parameter | Baseline | Variation B | Notes |
 |-----------|----------|-------------|-------|
 | chunk_size | 1200 | 300 | Fragment corpus |
 | chunk_overlap | 300 | 50 | Proportional |
-| Persistence | yes | no | In-memory Chroma |
+| Persistence | yes | yes | Persisted to `results/chroma_llama32_3b` |
 | Retriever k | 3 | 3 | |
 
 **Observed Metrics (experiment_2_chunky.json):**
 
-- Indexing Time: **11.16 s** (paid every run)
-- Avg Response Time: **20.79 s** (-56% vs baseline+)
+- Indexing Time: **14.93 s** (longer due to 150 chunks)
+- Avg Response Time: **3.66 s** (-39% vs baseline+)
 - Num Chunks: **150**
 - Accuracy: **100%**
 
-**Interpretation:** Latency improved because contexts are shorter, but recall risk rises with 150 micro-chunks; lack of persistence erodes overall runtime due to repeated ingest.
+**Interpretation:** Smaller chunks sped up responses but introduced more granular vector slices, suggesting a need to watch retriever coverage if queries span multiple chunks.
 
 ---
 
@@ -175,10 +175,10 @@ Experiment 4 (Advanced techniques)  ⏳ planned (contextual retrieval + rerankin
 
 | Metric | Local | Hybrid | Cloud |
 | --- | --- | --- | --- |
-| Indexing time | 8.90 s (reuse) | 8.69 s (reuse) | 11.06 s (in-memory) |
-| Avg response latency | 43.28 s | 59.63 s | 45.85 s |
+| Indexing time | 0.00 s (persist reuse) | 0.00 s (persist reuse) | 6.68 s (in-memory) |
+| Avg response latency | 8.48 s | 8.37 s | 7.92 s |
 | Accuracy | 100% | 100% | 100% |
-| Cloud latency logs | — | LLM avg ≈0.57 s | Embedding avg ≈0.71 s; LLM avg ≈0.64 s |
+| Simulated cloud latency | — | LLM avg 0.58 s | Embedding avg 0.52 s; LLM avg 0.59 s |
 
 #### Insights
 
@@ -190,11 +190,28 @@ Experiment 4 (Advanced techniques)  ⏳ planned (contextual retrieval + rerankin
 
 ### 4.4 Experiment 4: Advanced RAG Techniques
 
-**Objective (Planned)**: Layer contextual retrieval and reranking on top of the shared pipeline to test edge-case robustness.
+**Objective:** Layer contextual retrieval and reranking on top of the shared pipeline to test edge-case robustness. Both variants are now fully executed via `experiments/experiment_4_advanced.py`, with metrics saved beside the other experiment outputs.
 
-- **Contextual Retrieval:** Use `utils/contextualizer.py` to prepend LLM-generated summaries to each chunk before embedding; measure top-3 relevance lift on implied queries.
-- **Reranking:** Expand initial `k` (e.g., 10), apply an LLM-based reranker, then truncate to 3 before generation; measure accuracy vs added latency.
-- **Status:** Design stubs exist; execution and metrics collection are pending.
+#### Variants & Configuration
+
+1. **Basic Control:** Reuses the baseline 3B model, persisted Chroma store, and `k=3` retrieval to provide a latency reference before adding advanced techniques.
+2. **Contextual Retrieval:** Uses `utils/contextualizer.py` to prepend LLM-generated summaries to each chunk during indexing. Chunk count stays at 48, but each chunk roughly doubles in length, and indexing performs 48 additional LLM calls.
+3. **LLM Reranking:** Expands initial retrieval to `k=10`, invokes an LLM scorer per chunk, then keeps the top-3 for answer generation.
+
+#### Observed Metrics (from `experiment_4_*.json`)
+
+| Metric | Basic | Contextual | Rerank |
+| --- | --- | --- | --- |
+| Indexing time | 5.93 s | 9.65 s | 6.27 s |
+| Avg response latency | 7.45 s | 10.77 s | 45.94 s |
+| Accuracy | 100% | 100% | 100% |
+| Notes | Control path | +48 contextualization calls | 10 rerank calls/query |
+
+#### Insights
+
+- **Contextual Retrieval:** Accuracy matched the control, but chunk sizes ballooned (warnings up to ~3,166 characters) and mean latency rose 44%, suggesting the semantic lift is only worthwhile for ambiguous questions.
+- **Reranking:** Maintained accuracy yet introduced a 5× latency penalty because every query now runs ten extra LLM calls. Batching or using a lighter reranker would be required for real-time use.
+- **Overall:** Advanced techniques did not improve accuracy for this well-structured BOI corpus, so the baseline remains the best speed/accuracy trade-off for interactive scenarios.
 
 ---
 
@@ -308,10 +325,10 @@ Each experiment will produce a comparison table:
 
 ### 8.4 Experiment 4 (Advanced)
 
-- ⏳ Implement contextual retrieval (uses `utils/contextualizer.py`)
-- ⏳ Implement reranking strategy
-- ⏳ Demonstrate improvement on edge cases
-- ⏳ Quantify latency overhead
+- ✅ Implemented contextual retrieval (chunk summaries via `utils/contextualizer.py`)
+- ✅ Implemented reranking strategy (k=10 + LLM scorer)
+- ✅ Collected metrics on latency overhead vs accuracy
+- ⚠️ No measurable accuracy lift vs baseline; recommend batching/ lighter rerankers if revisited
 
 ---
 
@@ -421,7 +438,7 @@ python experiments/experiment_3_local_vs_cloud.py --mode cloud
 | Experiment 1 | ✅ Complete | Baseline implementation |
 | Experiment 2 | ✅ Complete | Parameter variations (LLM size + chunking/persistence) |
 | Experiment 3 | ✅ Complete | Local vs hybrid vs cloud modes |
-| Experiment 4 | ⏳ Planned | Advanced techniques |
+| Experiment 4 | ✅ Complete | Advanced contextual retrieval + reranking |
 | Results Analysis | ⏳ In Progress | Graphs, tables, insights |
 | Final Report | ⏳ Planned | RESULTS.md with findings |
 
@@ -495,12 +512,12 @@ persist_directory = "./results/chroma_baseline"
 | Exp 2A | Smaller LLM can reduce latency without tanking accuracy | Swap to `llama3.2:3b`, compare response time and accuracy |
 | Exp 2B | Aggressive chunking speeds responses but risks recall; skipping persistence adds startup cost | Set chunk_size=300/overlap=50, disable persistence, measure accuracy + indexing time |
 | Exp 3 | Networked modes incur higher end-to-end latency despite fast cloud inference | Simulate cloud latency for embeddings/LLM and compare local vs hybrid vs cloud |
-| Exp 4A | Contextual chunks improve implied/ambiguous queries | Enrich chunks with summaries and compare top-3 relevance (planned) |
-| Exp 4B | Reranking reduces missed relevant chunks | Run wider initial k with reranker vs baseline (planned) |
+| Exp 4A | Contextual chunks add semantic hints but may cost latency | Enrich chunks with summaries and compare top-3 relevance vs control |
+| Exp 4B | LLM reranking improves recall but adds overhead | Retrieve k=10, LLM-rerank to top-3, compare latency/accuracy |
 
 ---
 
-**Document Version**: 1.1  
-**Last Updated**: March 2025  
+**Document Version**: 1.2  
+**Last Updated**: December 2025  
 **Authors**: HW5 Implementation Team  
-**Status**: Experiments 1–3 Complete; Experiment 4 Planned
+**Status**: Experiments 1–4 Complete; results analysis in progress

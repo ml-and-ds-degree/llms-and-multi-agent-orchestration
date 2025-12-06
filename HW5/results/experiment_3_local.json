@@ -5,27 +5,27 @@
   "chunk_size": 1200,
   "chunk_overlap": 300,
   "persist_directory": "/workspaces/llms-and-multi-agent-orchestration/HW5/results/chroma_baseline",
-  "indexing_time": 8.902515652007423,
+  "indexing_time": 0.0,
   "num_chunks": 48,
   "queries": [
     {
       "query": "How to report BOI?",
-      "response": "According to the provided document, beneficial ownership information can be reported electronically by accessing the BOI E-Filing portal at http://boiefiling.fincen.gov, beginning on January 1, 2024. A reporting company may choose one of two filing methods: upload a finalized PDF version of BOIR and submit online or fill out a web-based version of BOIR and submit online.",
-      "response_time": 39.51821075299813,
+      "response": "According to the provided context, to report Beneficial Ownership Information (BOI), you need to provide the following information for each beneficial owner and company applicant required to be reported:\n\n1. Full legal name\n2. Date of birth\n3. Complete current address\n4. Unique identifying number and issuing jurisdiction from one of the following non-expired documents:\n   - U.S. passport\n   - Identification document issued by a State, local government, or Indian Tribe for the purpose of identifying the individual\n   - State-issued driver's license\n   - Foreign passport (if none of the above are available)\n\nAdditionally, you may provide a FinCEN identifier for a beneficial owner or company applicant instead of this information.\n\nIf a previously submitted BOIR needs to be corrected or updated, it must be completed in its entirety with the necessary corrections or updates made to the information. Reporting companies must resubmit unchanged information along with the corrected or updated information.",
+      "response_time": 10.689721684000688,
       "chunks_retrieved": 3,
       "is_accurate": true
     },
     {
       "query": "What is the document about?",
-      "response": "The document appears to be a set of filing instructions for reporting beneficial ownership information, specifically the Beneficial Ownership Information Reports (BOIRs) required by FinCEN. The document explains who must report, what they must report, and when they must report, as well as providing guidance on how to determine if an entity needs to file a BOIR with FinCEN.",
-      "response_time": 41.76977679699485,
+      "response": "The document appears to be a set of filing instructions for beneficial ownership information reporting, specifically for Item 31 and Item 32 in a report called \"BOI Report Filing Instructions\". The document provides guidance on how to identify a document number from the company's identifying document and how to identify the issuing jurisdiction (country or state) that issued the document.",
+      "response_time": 5.477513341000304,
       "chunks_retrieved": 3,
       "is_accurate": true
     },
     {
       "query": "What are the main points as a business owner I should be aware of?",
-      "response": "As a business owner, you should be aware of the following main points:\n\n1. If your company has a principal place of business in the United States or U.S. Territory, the street address should be that of the principal place of business. Otherwise, it should be the primary location in the United States or U.S. Territory where the reporting company conducts business.\n2. If you select a U.S. Territory in item 13, then item 14 will be automatically populated with the relevant U.S. Territory.\n3. For existing reporting companies created or registered before January 1, 2024, do not check the box. However, if you check this box, you are not required to report any company applicants and should proceed to Part III.\n\nThese points relate to the reporting requirements for beneficial ownership information and how to identify your company's principal place of business.",
-      "response_time": 48.541573251000955,
+      "response": "Based on the provided context, as a business owner, you should be aware of the following main points regarding beneficial ownership information reporting:\n\n1. Territory: If your company has a principal place of business in the United States or U.S. territory, you should use the street address of the principal place of business. Otherwise, you should use the primary location in the United States or U.S. territory where your company conducts business.\n2. Automatic population: If you select a U.S. territory in item 13, item 14 (Territory) will be automatically populated with the relevant U.S. territory.\n3. Existing reporting company: Check the box if your company was created or registered before January 1, 2024. This is not required for reporting companies that check this box; you should proceed to Part III.\n\nThese points are part of BOIR Item 16 and Item 14 in the provided documents.",
+      "response_time": 9.280656332004583,
       "chunks_retrieved": 3,
       "is_accurate": true
     }
@@ -33,7 +33,7 @@
   "metadata": {
     "mode": "All Local",
     "description": "Ollama LLM + embeddings + persisted Chroma",
-    "vector_store_mode": "rebuild",
+    "vector_store_mode": "reuse",
     "chunk_stats": {
       "count": 48,
       "min": 153,
@@ -41,17 +41,28 @@
       "mean": 917.375,
       "median": 1117.5,
       "stdev": 328.02411147403984,
-      "chunk_time_s": 0.4560046529950341
+      "p10": 383.20000000000005,
+      "p25": 726.5,
+      "p75": 1168.25,
+      "p90": 1181.4,
+      "sample_first5": [
+        153,
+        1058,
+        1198,
+        1170,
+        326
+      ],
+      "chunk_time_s": 0.499838097995962
     },
     "query_set": "baseline",
     "latency_snapshot": {
-      "min": 39.51821075299813,
-      "max": 48.541573251000955,
-      "mean": 43.27652026699798,
-      "stdev": 3.834751152803247
+      "min": 5.477513341000304,
+      "max": 10.689721684000688,
+      "mean": 8.482630452335192,
+      "stdev": 2.201425739708592
     },
     "cloud_latency": {}
   },
-  "avg_response_time": 43.27652026699798,
+  "avg_response_time": 8.482630452335192,
   "accuracy_rate": 1.0
 }
