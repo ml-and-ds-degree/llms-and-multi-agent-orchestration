@@ -1,0 +1,69 @@
+{
+  "experiment_name": "Experiment 4: contextual",
+  "model_name": "llama3.2",
+  "embedding_model": "nomic-embed-text",
+  "chunk_size": 1200,
+  "chunk_overlap": 300,
+  "persist_directory": "/workspaces/llms-and-multi-agent-orchestration/HW5/results/chroma_advanced",
+  "indexing_time": 9.649387369005126,
+  "num_chunks": 48,
+  "queries": [
+    {
+      "query": "How to report BOI?",
+      "response": "According to BOIR Item 18, when reporting a company applicant, you can report their FinCEN ID (Financial Crimes Enforcement Network Identification Number) instead of providing information in fields 19 through 33. To do this:\n\n1. Enter the FinCEN ID as a single text string.\n2. If the FinCEN ID for the company applicant is not provided, provide information about the company applicant in fields 19 through 33.\n\nThis allows you to report the FinCEN ID directly, which may be a more convenient option for some companies.",
+      "response_time": 8.568590235008742,
+      "chunks_retrieved": 3,
+      "is_accurate": true
+    },
+    {
+      "query": "What is the document about?",
+      "response": "The document appears to be a technical instruction guide for filing Beneficial Ownership Information Reports (BOIRs) with the Financial Crimes Enforcement Network (FinCEN) in the United States, specifically regarding the Bank On Individual Regulatory (BOIR) process.",
+      "response_time": 7.52578383400396,
+      "chunks_retrieved": 3,
+      "is_accurate": true
+    },
+    {
+      "query": "What are the main points as a business owner I should be aware of?",
+      "response": "Based on the provided context, as a business owner, you should be aware of the following main points regarding beneficial ownership:\n\n1. Definition of Beneficial Owner: A beneficial owner is an individual or entity that has a significant ownership interest in a small business entity and can exercise substantial control over its operations.\n\n2. Reporting Requirements: The Corporate Transparency Act requires certain U.S. and foreign entities to report beneficial ownership information to the Financial Crimes Enforcement Network (FinCEN).\n\n3. Who Must Report: An entity that is a \"reporting company\" and does not qualify for an exemption must report beneficial ownership information to FinCEN.\n\n4. What Must be Reported: Beneficial ownership information includes:\n   * Information about the entity\n   * Its beneficial owners\n   * In certain cases, its company applicants\n\n5. Certification Requirements: The person submitting beneficial ownership information to FinCEN must certify that the information is true, correct, and complete.\n\n6. How to Identify Beneficial Owners: Review Chapter 2 of FinCEN's Small Entity Compliance Guide to learn more about how to identify company applicants and their corresponding beneficial owners.\n\n7. Report Requirements: Learn more about the reporting requirements and how to identify beneficial owners by reviewing Chapter 3 of FinCEN's Small Entity Compliance Guide.\n\nBy being aware of these main points, you can ensure compliance with the reporting requirements for your business entity.",
+      "response_time": 16.22886482400645,
+      "chunks_retrieved": 3,
+      "is_accurate": true
+    }
+  ],
+  "metadata": {
+    "variant": "contextual",
+    "vector_store_mode": "rebuild",
+    "chunk_stats": {
+      "count": 48,
+      "min": 153,
+      "max": 1198,
+      "mean": 917.375,
+      "median": 1117.5,
+      "stdev": 328.02411147403984,
+      "p10": 383.20000000000005,
+      "p25": 726.5,
+      "p75": 1168.25,
+      "p90": 1181.4,
+      "sample_first5": [
+        153,
+        1058,
+        1198,
+        1170,
+        326
+      ],
+      "chunk_time_s": 0.49672422900039237
+    },
+    "query_set": "baseline",
+    "latency_snapshot": {
+      "min": 7.52578383400396,
+      "max": 16.22886482400645,
+      "mean": 10.774412964339717,
+      "stdev": 3.8803045511540755
+    },
+    "contextual_summary_model": null,
+    "rerank_top_k": 3,
+    "rerank_candidates": 10
+  },
+  "avg_response_time": 10.774412964339717,
+  "accuracy_rate": 1.0
+}
