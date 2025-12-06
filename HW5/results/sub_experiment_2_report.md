@@ -11,8 +11,8 @@ Both runs used the same `experiment_1_baseline_plus.py` driver via different CLI
 
 ## Video-specific questions answered
 
-- **Why does the video caution against tiny chunk sizes?** Because context gets fragmented, forcing the retriever to stitch multiple micro-chunks per answer, which increases latency variance and can drop key sentences. Our chunk experiment illustrates both the latency drop *and* the risk of missing holistic context.
-- **What happens if you skip persistence?** Every run rebuilds embeddings, which reintroduces the 10–11 s indexing penalty highlighted in the tutorial. Our in-memory run logged 11.16 s of rebuild time despite a smaller chunk size.
+- **Why does the video caution against tiny chunk sizes?** The video does not mention a caution against tiny chunk sizes.
+- **What happens if you skip persistence?** The video does not mention what happens if you skip persistence.
 
 ## Metrics snapshots
 
