@@ -36,8 +36,8 @@
         },
         "ghcr.io/devcontainers/features/docker-in-docker": {}
     },
-    "forwardPorts": [
-        11434
+    "runArgs": [
+        "--network=host"
     ],
     "initializeCommand": "bash .devcontainer/scripts/setup-auth.sh",
     "mounts": [
@@ -49,9 +49,8 @@
         "installSpecKit": "uv tool install specify-cli --from git+https://github.com/github/spec-kit.git",
         "setupNodeSymlink": "ln -sf /root/.bun/bin/bun /usr/bin/node",
         "installCodex": "bun install -g @openai/codex",
-        "installOpencode": "bun add -g opencode-ai",
-        "setupOllama": "nohup ollama serve > /tmp/ollama-serve.log 2>&1 & sleep 5"
+        "installOpencode": "bun add -g opencode-ai"
     },
-    "postStartCommand": "ollama pull llama3.2:latest && echo 'Development container ready!'",
+    "postStartCommand": "echo 'Development container ready!'",
     "remoteUser": "root"
 }
