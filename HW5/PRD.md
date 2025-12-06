@@ -2,7 +2,7 @@
 
 ## Executive Summary
 
-This project implements a comprehensive experimental analysis of RAG (Retrieval-Augmented Generation) systems using Ollama as the local LLM backend. The experiments systematically explore how different configuration decisions impact RAG performance, following the methodology established in the "Ollama Course - Build AI Apps Locally" video tutorial.
+This project implements a three-part experimental analysis of RAG (Retrieval-Augmented Generation) systems using Ollama as the local LLM backend, with simulated cloud modes. The work to date replicates the course baseline, runs two parameter deviations, and compares local vs hybrid vs “cloud” (simulated) latency profiles. All runners now share a modular `utils/rag_pipeline.py` to avoid duplication.
 
 **Video Reference**: [Ollama Fundamentals Course](https://youtu.be/GWB9ApTPTv4?t=7649) (Starting at 2:07:29)  
 **Reference Repository**: [pdichone/ollama-fundamentals](https://github.com/pdichone/ollama-fundamentals)
@@ -73,16 +73,13 @@ unstructured
 
 ### 3.1 Experiment Structure
 
-The project consists of **4 sub-experiments**, each building on the baseline:
+The project currently covers **three executed sub-experiments** with an **advanced RAG track planned**:
 
-```
-Experiment 1 (Baseline)
-    ↓
-Experiment 2 (Parameter Variations)
-    ↓
-Experiment 3 (Local vs Cloud)
-    ↓
-Experiment 4 (Advanced RAG Techniques)
+```txt
+Experiment 1 (Baseline replication)  ✅ completed
+Experiment 2 (Parameter variations)  ✅ completed
+Experiment 3 (Local vs Cloud modes) ✅ completed
+Experiment 4 (Advanced techniques)  ⏳ planned (contextual retrieval + reranking)
 ```
 
 ---
@@ -91,231 +88,144 @@ Experiment 4 (Advanced RAG Techniques)
 
 ### 4.1 Experiment 1: Baseline (Video Replication)
 
-**Objective**: Establish reference performance metrics by replicating the video tutorial exactly.
+**Objective**: Establish reference performance metrics by replicating the video tutorial exactly, using an instrumented pipeline for chunk stats and metrics saving.
 
 #### Configuration (Following Video @ 2:07:29)
 
 | Parameter | Value | Justification |
 |-----------|-------|---------------|
-| LLM Model | llama3.2 (3B) | Recommended in video for balance of speed/quality |
-| Embedding Model | nomic-embed-text | Optimized for RAG, fast, local |
-| Chunk Size | 1200 characters | Video recommendation for document context |
-| Chunk Overlap | 300 characters | 25% overlap to preserve context boundaries |
-| Vector Store | Chroma (in-memory) | No persistence in baseline |
-| Retrieval Strategy | MultiQueryRetriever | Generates 5 query variations for better recall |
-| Retrieval k | 3 (implicit) | Default from MultiQueryRetriever |
-| Prompt Template | "Answer based ONLY on..." | Strict context adherence |
+| LLM Model | `llama3.2` | Matches the course recommendation and keeps latency manageable |
+| Embedding Model | `nomic-embed-text` | Recommended in the video; strong local performance |
+| Chunk Size | 1200 characters | From the course recipe |
+| Chunk Overlap | 300 characters | 25% overlap preserves context boundaries |
+| Vector Store | Chroma (persisted) | Persisted at `results/chroma_baseline` for reuse |
+| Retrieval Strategy | similarity search | Mirrors the course “k=3” lookup |
+| Retrieval k | 3 | Default top-k recall for small corpus |
+| Prompt Template | “Answer the question based ONLY on the following context…” | Enforces grounding |
 
 #### Test Queries
 
-1. "How to report BOI?" - Direct procedural question
-2. "What is the document about?" - General understanding
-3. "What are the main points as a business owner I should be aware of?" - Synthesis question
+1. "How to report BOI?"
+2. "What is the document about?"
+3. "What are the main points as a business owner I should be aware of?"
 
-#### Metrics Collected
+#### Observed Metrics (from `results/experiment_1_baseline_plus.json`)
 
-- **Indexing Time**: Time to chunk + embed + store documents
-- **Number of Chunks**: Total chunks created from BOI.pdf
-- **Query Response Time**: Per-query latency (avg, min, max)
-- **Answer Quality**: Manual assessment (accurate/inaccurate)
+- Indexing Time: **0.00 s** (reused persisted store)
+- Number of Chunks: **48**
+- Avg Response Time: **47.28 s** across 3 queries
+- Accuracy: **100%** (auto-eval + manual spot check)
 
-#### Expected Outcomes
-
-- Establish baseline latency benchmarks
-- Validate that the setup works correctly
-- Create reference answers for accuracy comparison
+**Takeaways:** Persistence prevents cold-start cost; chunk distribution is healthy (min 153, max 1,198 characters), so recall is strong even with `k=3`.
 
 ---
 
 ### 4.2 Experiment 2: Parameter Variations (Sensitivity Analysis)
 
-**Objective**: Understand how deviating from recommended parameters impacts performance.
+**Objective**: Measure how specific deviations affect latency, accuracy, and startup cost using the same driver (`experiment_1_baseline_plus.py`).
 
-#### Variation A: Chunking Parameters
+#### Variation A: Smaller LLM (`llama3.2:3b`)
 
-**DEVIATION**: Change from recommended chunk_size=1200 to chunk_size=300
+| Parameter | Baseline | Variation A | Notes |
+|-----------|----------|-------------|-------|
+| LLM Model | `llama3.2` | `llama3.2:3b` | Persisted to a fresh Chroma dir |
+| Embedding | `nomic-embed-text` | same | |
+| Chunking | 1200 / 300 | same | |
+| Persistence | yes | yes | Forced rebuild |
 
-| Parameter | Baseline | Variation A | Rationale |
-|-----------|----------|-------------|-----------|
-| chunk_size | 1200 | 300 | Test fragmentation impact |
-| chunk_overlap | 300 | 50 | Proportional reduction |
+**Observed Metrics (experiment_2_llm_small.json):**
 
-**Hypothesis**:
+- Indexing Time: **9.60 s**
+- Avg Response Time: **44.50 s** (-6% vs baseline+)
+- Accuracy: **100%**
 
-- **Positive**: More precise retrieval (smaller semantic units)
-- **Negative**: Lost context, increased chunks (4x), potential information fragmentation
+**Interpretation:** Smaller model retained accuracy and shaved a few seconds per query; KV cache still helps.
 
-**What to Measure**:
+#### Variation B: Aggressive Chunking + No Persistence
 
-- Number of chunks created (expect ~4x increase)
-- Retrieval quality (do answers lose context?)
-- Indexing time (expect faster embedding)
-- Answer accuracy on synthesis questions (expect degradation)
+| Parameter | Baseline | Variation B | Notes |
+|-----------|----------|-------------|-------|
+| chunk_size | 1200 | 300 | Fragment corpus |
+| chunk_overlap | 300 | 50 | Proportional |
+| Persistence | yes | no | In-memory Chroma |
+| Retriever k | 3 | 3 | |
 
----
+**Observed Metrics (experiment_2_chunky.json):**
 
-#### Variation B: Vector Store Persistence
+- Indexing Time: **11.16 s** (paid every run)
+- Avg Response Time: **20.79 s** (-56% vs baseline+)
+- Num Chunks: **150**
+- Accuracy: **100%**
 
-**DEVIATION**: Remove `persist_directory` parameter
-
-| Parameter | Baseline | Variation B | Rationale |
-|-----------|----------|-------------|-----------|
-| persist_directory | None | None (explicit test) | Already baseline, test rebuild cost |
-| Test runs | 1 | 3 consecutive | Measure repeated indexing cost |
-
-**Hypothesis**:
-
-- Same accuracy (deterministic with seed)
-- Significantly higher startup latency on each run
-- Demonstrates production scalability issue
-
-**What to Measure**:
-
-- Indexing time per run (expect consistent ~5-10s)
-- Total time for 3 runs vs 1 run with persistence
-- User experience degradation
+**Interpretation:** Latency improved because contexts are shorter, but recall risk rises with 150 micro-chunks; lack of persistence erodes overall runtime due to repeated ingest.
 
 ---
 
 ### 4.3 Experiment 3: Local vs Cloud (Architecture Comparison)
 
-**Objective**: Compare local Ollama setup against cloud-based LLM alternatives.
+**Objective**: Compare three deployment modes using the same queries and corpus, with simulated cloud latency wrappers (can be swapped for real endpoints via environment variables).
 
-#### Mode 1: All Local (Baseline)
+#### Modes (script: `experiment_3_local_vs_cloud.py`)
 
-```
-PDF → Chunks → Ollama Embeddings → ChromaDB → Ollama LLM → Response
-[ALL LOCAL]
-```
+1. **All Local:** Ollama LLM + embeddings + persisted Chroma.
+2. **Hybrid:** Local embeddings/vector DB; LLM calls pay injected cloud-style latency.
+3. **Cloud:** Embeddings and LLM both pay injected latency; Chroma is in-memory (stateless).
 
-#### Mode 2: Hybrid (Cloud LLM)
-
-```
-PDF → Chunks → Ollama Embeddings → ChromaDB → Groq API → Response
-[LOCAL PROCESSING] [CLOUD GENERATION]
-```
-
-**Cloud Provider**: Groq (free tier)  
-**Model**: llama3-8b-8192 (larger model, faster inference)
-
-#### Mode 3: Cloud Mode (Optional)
-
-```
-PDF → Chunks → HuggingFace Embeddings → ChromaDB → Groq API → Response
-[LOCAL STORAGE] [CLOUD PROCESSING]
-```
-
-#### Metrics to Compare
+#### Observed Metrics (from `experiment_3_*.json`)
 
 | Metric | Local | Hybrid | Cloud |
-|--------|-------|--------|-------|
-| Cold Start Latency | ? | ? | ? |
-| Query Latency | ? | ? | ? |
-| Network Dependency | No | Yes | Yes |
-| Cost per Query | $0 | $0 (free tier) | $0 (free tier) |
-| Privacy | Full | Partial | Low |
-| Offline Capable | Yes | No | No |
-| Rate Limits | None | 30 req/min | ? |
+| --- | --- | --- | --- |
+| Indexing time | 8.90 s (reuse) | 8.69 s (reuse) | 11.06 s (in-memory) |
+| Avg response latency | 43.28 s | 59.63 s | 45.85 s |
+| Accuracy | 100% | 100% | 100% |
+| Cloud latency logs | — | LLM avg ≈0.57 s | Embedding avg ≈0.71 s; LLM avg ≈0.64 s |
 
-#### Expected Insights
+#### Insights
 
-- **Local**: Higher latency, full privacy, no network dependency
-- **Hybrid**: Potentially lower latency (Groq is fast), network required for generation only
-- **Cloud**: Lowest setup friction, highest network dependency
+- Network overhead dominates the hybrid path even when raw cloud LLM latency is low.
+- Cloud mode regains some latency but pays a fresh indexing tax without persistence.
+- Privacy and offline guarantees apply only to the all-local path; hybrid/cloud require API hygiene and key management.
 
 ---
 
 ### 4.4 Experiment 4: Advanced RAG Techniques
 
-**Objective**: Implement and measure advanced RAG strategies to overcome common failure modes.
+**Objective (Planned)**: Layer contextual retrieval and reranking on top of the shared pipeline to test edge-case robustness.
 
-#### Technique A: Basic vs Contextual Retrieval
-
-**Basic RAG** (Baseline):
-
-```
-Chunk → Embed → Store
-```
-
-**Contextual Retrieval** (Enhancement):
-
-```
-Chunk → LLM(generate context summary) → Augmented Chunk → Embed → Store
-```
-
-**Context Generation Prompt**:
-
-```
-"Given this chunk from a document about BOI reporting, generate a 1-2 sentence 
-context description that will help with semantic search. Chunk: {chunk_text}"
-```
-
-**Test Queries**:
-
-- **Direct**: "What are the filing deadlines?" (should work equally)
-- **Implied**: "When do I need to submit this?" (contextual should excel)
-- **Ambiguous**: "What are the requirements?" (contextual should disambiguate)
-
-**Measurement**: Retrieval accuracy (% correct chunks in top-3)
-
----
-
-#### Technique B: Basic Retrieval vs Reranking
-
-**Basic Retrieval**:
-
-```
-Query → similarity_search(k=3) → LLM
-```
-
-**Reranking**:
-
-```
-Query → similarity_search(k=10) → LLM_rerank → Top 3 → LLM
-```
-
-**Reranking Prompt**:
-
-```
-"Rate how relevant this chunk is to the question on a scale of 0-10.
-Question: {question}
-Chunk: {chunk}
-Rating:"
-```
-
-**Hypothesis**: Reranking reduces "missed top rank" failures by casting a wider net initially.
-
-**Measurement**:
-
-- Compare which chunks are selected (Basic vs Reranked)
-- Final answer quality improvement
-- Total latency cost (expect +20-30% for reranking)
+- **Contextual Retrieval:** Use `utils/contextualizer.py` to prepend LLM-generated summaries to each chunk before embedding; measure top-3 relevance lift on implied queries.
+- **Reranking:** Expand initial `k` (e.g., 10), apply an LLM-based reranker, then truncate to 3 before generation; measure accuracy vs added latency.
+- **Status:** Design stubs exist; execution and metrics collection are pending.
 
 ---
 
 ## 5. File Structure
 
-```
+```toml
 HW5/
 ├── experiments/
 │   ├── __init__.py
-│   ├── experiment_1_baseline.py       # Baseline (video replication)
-│   ├── experiment_2_variations.py     # Chunking + Persistence tests
-│   ├── experiment_3_cloud.py          # Local vs Cloud comparison
-│   └── experiment_4_advanced.py       # Contextual + Reranking
+│   ├── experiment_1_baseline.py        # Video-faithful baseline
+│   ├── experiment_1_baseline_plus.py   # CLI-driven variations (Exp 2)
+│   └── experiment_3_local_vs_cloud.py  # Local vs hybrid vs cloud modes
 ├── utils/
 │   ├── __init__.py
 │   ├── metrics.py                      # Metrics tracking & reporting
-│   └── visualization.py                # Graph generation (planned)
+│   ├── rag_pipeline.py                 # Shared RAG builders (ingest, vector store, chain, queries)
+│   └── contextualizer.py               # Planned contextual retrieval helpers
 ├── results/
 │   ├── experiment_1_baseline.json
-│   ├── experiment_2_variations.json
+│   ├── experiment_1_baseline_plus.json
+│   ├── experiment_2_chunky.json
+│   ├── experiment_2_llm_small.json
+│   ├── experiment_3_local.json
+│   ├── experiment_3_hybrid.json
 │   ├── experiment_3_cloud.json
-│   └── experiment_4_advanced.json
+│   ├── sub_experiment_1_report.md
+│   ├── sub_experiment_2_report.md
+│   └── sub_experiment_3_report.md
 ├── data/
 │   └── BOI.pdf                         # Knowledge base document
 ├── queries.py                          # Test question definitions
-├── run_all_experiments.py              # Master experiment runner (planned)
 ├── PRD.md                              # This document
 ├── BASELINE.md                         # System info
 └── ollama-rag-installation.md          # Assignment requirements
@@ -362,11 +272,11 @@ Each experiment will produce a comparison table:
 
 | Aspect | Video Recommendation | Our Experiment | Experiment # |
 |--------|---------------------|----------------|--------------|
-| Chunk Size | 1200 | 300 | Exp 2A |
-| Persistence | Not shown (in-memory) | Test rebuild cost | Exp 2B |
-| LLM Location | Local only | Add cloud comparison | Exp 3 |
-| Retrieval | MultiQueryRetriever | Add reranking | Exp 4B |
-| Embedding | Direct chunks | Add contextual | Exp 4A |
+| Chunk Size | 1200 | 300 (smaller) | Exp 2B |
+| Persistence | Not emphasized | Persisted baseline; removed for variation | Exp 1 / Exp 2B |
+| LLM Location | Local only | Hybrid + cloud-simulated modes | Exp 3 |
+| Retrieval | similarity search k=3 | Plan reranking layer | Exp 4B (planned) |
+| Embedding | nomic-embed-text | Same; plan contextual summaries | Exp 1 / Exp 4A (planned) |
 
 **Rationale**: These deviations are intentional to explore the sensitivity of the system and understand trade-offs.
 
@@ -376,31 +286,32 @@ Each experiment will produce a comparison table:
 
 ### 8.1 Experiment 1 (Baseline)
 
-- ✅ Successfully replicate video setup
-- ✅ Generate responses for all test queries
-- ✅ Indexing time < 30s
-- ✅ Query response time < 10s per query
-- ✅ Establish baseline accuracy
+- ✅ Replicated video setup with persisted Chroma
+- ✅ Generated responses for all baseline queries
+- ✅ Indexing time ~0s on reuse (10s on rebuild)
+- ⚠️ Query response time ~47s per query (LLM-bound)
+- ✅ Baseline accuracy established at 100%
 
 ### 8.2 Experiment 2 (Variations)
 
-- ✅ Demonstrate 4x chunk increase with small chunk_size
-- ✅ Show context fragmentation impact on synthesis questions
-- ✅ Quantify rebuild cost without persistence
+- ✅ Smaller LLM variation completed (llama3.2:3b)
+- ✅ Aggressive chunking + no persistence variation completed
+- ✅ Observed chunk inflation to 150 entries; accuracy held at 100%
+- ✅ Quantified rebuild cost when persistence is skipped
 
 ### 8.3 Experiment 3 (Cloud)
 
-- ✅ Successfully integrate Groq API
-- ✅ Compare latency (local vs hybrid)
-- ✅ Document network dependency impact
-- ✅ Measure rate limit behavior
+- ✅ Implemented local, hybrid, and cloud-simulated modes
+- ✅ Compared latency across modes with identical queries
+- ✅ Captured cloud-latency buckets for embeddings/LLM
+- ✅ Documented privacy/network trade-offs
 
 ### 8.4 Experiment 4 (Advanced)
 
-- ✅ Implement contextual retrieval
-- ✅ Implement reranking strategy
-- ✅ Demonstrate improvement on edge cases
-- ✅ Quantify latency overhead
+- ⏳ Implement contextual retrieval (uses `utils/contextualizer.py`)
+- ⏳ Implement reranking strategy
+- ⏳ Demonstrate improvement on edge cases
+- ⏳ Quantify latency overhead
 
 ---
 
@@ -414,8 +325,8 @@ To verify video comprehension:
 2. **What port does the Ollama server run on?**
    - Answer: `localhost:11434` (default)
 
-3. **What is the purpose of MultiQueryRetriever?**
-   - Answer: Generate multiple query variations to overcome limitations of distance-based similarity search
+3. **Why does the video emphasize local inference for sensitive data?**
+   - Answer: To keep proprietary documents on-device and avoid leaking context to third-party APIs.
 
 4. **What chunk_size and overlap does the video use?**
    - Answer: chunk_size=1200, overlap=300
@@ -429,8 +340,9 @@ To verify video comprehension:
 
 ### 10.1 Code Deliverables
 
-- ✅ 4 experiment scripts (Python)
+- ✅ 3 experiment scripts (Python)
 - ✅ Metrics tracking utility
+- ✅ Shared RAG pipeline helper
 - ✅ Test queries definition
 - ⏳ Visualization utility (planned)
 - ⏳ Master experiment runner (planned)
@@ -439,12 +351,14 @@ To verify video comprehension:
 
 - ✅ PRD (this document)
 - ✅ BASELINE.md (system configuration)
+- ✅ Sub-experiment reports (1–3)
 - ⏳ RESULTS.md (final report with findings)
 
 ### 10.3 Results Deliverables
 
-- ⏳ 4 JSON metrics files (one per experiment)
-- ⏳ Comparison tables (markdown)
+- ✅ JSON metrics files for Experiments 1–3 (baseline, variations, local vs cloud)
+- ✅ Sub-experiment markdown summaries (1–3)
+- ⏳ Comparison/roll-up tables
 - ⏳ Visualization graphs (PNG)
 - ⏳ Screenshot of ollama commands
 
@@ -470,11 +384,31 @@ cd HW5
 python experiments/experiment_1_baseline.py
 ```
 
-### 11.3 Run All Experiments
+### 11.3 Run Variations (Experiment 2)
+
+```bash
+# Smaller LLM (llama3.2:3b)
+python experiments/experiment_1_baseline_plus.py \
+  --model-name llama3.2:3b \
+  --persist-dir results/chroma_llama32_3b \
+  --output results/experiment_2_llm_small.json \
+  --force-reindex
+
+# Chunky + no persistence
+python experiments/experiment_1_baseline_plus.py \
+  --chunk-size 300 --chunk-overlap 50 \
+  --no-persist --force-reindex \
+  --output results/experiment_2_chunky.json
+```
+
+### 11.4 Run Local vs Cloud (Experiment 3)
 
 ```bash
 cd HW5
-python run_all_experiments.py  # (planned)
+# local / hybrid / cloud
+python experiments/experiment_3_local_vs_cloud.py --mode local
+python experiments/experiment_3_local_vs_cloud.py --mode hybrid
+python experiments/experiment_3_local_vs_cloud.py --mode cloud
 ```
 
 ---
@@ -485,10 +419,10 @@ python run_all_experiments.py  # (planned)
 |-----------|--------|-------------|
 | Project Setup | ✅ Complete | Directory structure, utilities |
 | Experiment 1 | ✅ Complete | Baseline implementation |
-| Experiment 2 | ⏳ Planned | Parameter variations |
-| Experiment 3 | ⏳ Planned | Cloud comparison |
+| Experiment 2 | ✅ Complete | Parameter variations (LLM size + chunking/persistence) |
+| Experiment 3 | ✅ Complete | Local vs hybrid vs cloud modes |
 | Experiment 4 | ⏳ Planned | Advanced techniques |
-| Results Analysis | ⏳ Planned | Graphs, tables, insights |
+| Results Analysis | ⏳ In Progress | Graphs, tables, insights |
 | Final Report | ⏳ Planned | RESULTS.md with findings |
 
 ---
@@ -540,13 +474,16 @@ CHUNK_SIZE = 1200
 CHUNK_OVERLAP = 300
 
 # Retriever
-MultiQueryRetriever(k=5 query variations)
+retriever = vector_db.as_retriever(search_kwargs={"k": 3})
 
 # Prompt
 """Answer the question based ONLY on the following context:
 {context}
 Question: {question}
 """
+
+# Persistence
+persist_directory = "./results/chroma_baseline"
 ```
 
 ---
@@ -555,15 +492,15 @@ Question: {question}
 
 | Experiment | Hypothesis | Test Method |
 |------------|-----------|-------------|
-| Exp 2A | Small chunks hurt synthesis | Compare accuracy on multi-hop questions |
-| Exp 2B | No persistence = poor UX | Measure repeated startup time |
-| Exp 3 | Cloud = higher latency | Compare response times |
-| Exp 4A | Contextual = better edge cases | Retrieval accuracy on implied queries |
-| Exp 4B | Reranking = fewer misses | Compare top-k chunks selected |
+| Exp 2A | Smaller LLM can reduce latency without tanking accuracy | Swap to `llama3.2:3b`, compare response time and accuracy |
+| Exp 2B | Aggressive chunking speeds responses but risks recall; skipping persistence adds startup cost | Set chunk_size=300/overlap=50, disable persistence, measure accuracy + indexing time |
+| Exp 3 | Networked modes incur higher end-to-end latency despite fast cloud inference | Simulate cloud latency for embeddings/LLM and compare local vs hybrid vs cloud |
+| Exp 4A | Contextual chunks improve implied/ambiguous queries | Enrich chunks with summaries and compare top-3 relevance (planned) |
+| Exp 4B | Reranking reduces missed relevant chunks | Run wider initial k with reranker vs baseline (planned) |
 
 ---
 
-**Document Version**: 1.0  
-**Last Updated**: December 5, 2024  
+**Document Version**: 1.1  
+**Last Updated**: March 2025  
 **Authors**: HW5 Implementation Team  
-**Status**: Baseline Complete, Experiments 2-4 Planned
+**Status**: Experiments 1–3 Complete; Experiment 4 Planned
