@@ -39,7 +39,7 @@
 | Indexing time | **0.00 s** (store reuse) |
 | Number of chunks | **48** |
 | Avg response time | **47.28 s** across 3 questions |
-| Accuracy | **100%** (auto-eval via keyword matcher + manual confirmation)
+| Accuracy | **100%** (auto-eval via keyword matcher + manual confirmation) |
 
 ### Query-level view
 
