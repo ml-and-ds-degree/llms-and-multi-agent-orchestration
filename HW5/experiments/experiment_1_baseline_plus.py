@@ -24,22 +24,25 @@ from __future__ import annotations
 
 import argparse
 import logging
-import math
 import os
-import statistics
 import sys
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Optional
 
-import ollama
-from langchain_community.document_loaders import PyPDFLoader
-from langchain_community.vectorstores import Chroma
-from langchain_core.output_parsers import StrOutputParser
-from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.runnables import RunnablePassthrough
-from langchain_ollama import ChatOllama, OllamaEmbeddings
-from langchain_text_splitters import RecursiveCharacterTextSplitter
+from utils.rag_pipeline import (
+    DEFAULT_PROMPT_TEMPLATE,
+    build_chain,
+    build_embeddings,
+    build_llm,
+    build_retriever,
+    build_vector_store,
+    ensure_ollama_models,
+    load_documents,
+    run_query_batch,
+    split_documents,
+    summarize_chunks,
+)
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 sys.path.append(str(BASE_DIR))
@@ -51,7 +54,6 @@ from queries import (  # noqa: E402  # pylint: disable=wrong-import-position
 )
 from utils.metrics import (  # noqa: E402  # pylint: disable=wrong-import-position
     ExperimentMetrics,
-    QueryMetrics,
     Timer,
     print_metrics_summary,
 )
@@ -133,175 +135,32 @@ def parse_args() -> RunConfig:
     )
 
 
-def ensure_ollama_up(config: RunConfig) -> None:
-    logger.info("Checking Ollama server on localhost:11434")
-    try:
-        ollama.list()
-    except Exception as exc:  # pragma: no cover - network validation
-        raise RuntimeError(
-            "Ollama server not reachable. Run 'ollama serve' locally first."
-        ) from exc
-
-    for model in {config.model_name, config.embedding_model}:
-        logger.info("Ensuring model '%s' is pulled", model)
-        ollama.pull(model)
-
-
-def ingest_and_split(config: RunConfig):
-    logger.info("Loading PDF from %s", config.doc_path)
-    loader = PyPDFLoader(file_path=str(config.doc_path))
-    documents = loader.load()
-
-    logger.info(
-        "Splitting documents with chunk_size=%s, overlap=%s",
-        config.chunk_size,
-        config.chunk_overlap,
-    )
-    text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size=config.chunk_size,
-        chunk_overlap=config.chunk_overlap,
-    )
-    chunks = text_splitter.split_documents(documents)
-    logger.info("Generated %s chunks", len(chunks))
-    return documents, chunks
-
-
-def percentile(values: List[int], fraction: float) -> float:
-    if not values:
-        return 0.0
-    if len(values) == 1:
-        return float(values[0])
-    k = (len(values) - 1) * fraction
-    f = math.floor(k)
-    c = math.ceil(k)
-    if f == c:
-        return float(values[int(k)])
-    d0 = values[f] * (c - k)
-    d1 = values[c] * (k - f)
-    return float(d0 + d1)
-
-
-def summarize_chunks(chunks) -> Dict[str, float]:  # type: ignore[no-untyped-def]
-    lengths = [len(chunk.page_content) for chunk in chunks]
-    if not lengths:
-        return {"count": 0}
-
-    sorted_lengths = sorted(lengths)
-    summary = {
-        "count": len(lengths),
-        "min": min(lengths),
-        "max": max(lengths),
-        "mean": statistics.fmean(lengths),
-        "median": statistics.median(lengths),
-        "stdev": statistics.pstdev(lengths) if len(lengths) > 1 else 0.0,
-        "p10": percentile(sorted_lengths, 0.10),
-        "p25": percentile(sorted_lengths, 0.25),
-        "p75": percentile(sorted_lengths, 0.75),
-        "p90": percentile(sorted_lengths, 0.90),
-        "sample_first5": lengths[:5],
-    }
-    return summary
-
-
-def build_vector_store(chunks, config: RunConfig) -> Tuple[Chroma, float, str]:
-    embeddings = OllamaEmbeddings(model=config.embedding_model)
-
-    if config.no_persist or config.persist_dir is None:
-        logger.info("Building in-memory Chroma store (no persistence)")
-        with Timer() as index_timer:
-            vector_db = Chroma.from_documents(
-                documents=chunks,
-                embedding=embeddings,
-                collection_name=config.vector_store_name,
-            )
-        return vector_db, index_timer.get_elapsed(), "memory"
-
-    store_ready = config.persist_dir.exists() and any(config.persist_dir.iterdir())
-
-    if store_ready and not config.force_reindex:
-        logger.info("Reusing persisted Chroma store at %s", config.persist_dir)
-        vector_db = Chroma(
-            collection_name=config.vector_store_name,
-            embedding_function=embeddings,
-            persist_directory=str(config.persist_dir),
-        )
-        return vector_db, 0.0, "reuse"
-
-    logger.info("(Re)building Chroma store at %s", config.persist_dir)
-    with Timer() as index_timer:
-        vector_db = Chroma.from_documents(
-            documents=chunks,
-            embedding=embeddings,
-            collection_name=config.vector_store_name,
-            persist_directory=str(config.persist_dir),
-        )
-    return vector_db, index_timer.get_elapsed(), "rebuild"
-
-
-def create_chain(vector_db: Chroma, config: RunConfig):
-    llm = ChatOllama(model=config.model_name)
-    retriever = vector_db.as_retriever(search_kwargs={"k": config.retriever_k})
-
-    template = """Answer the question based ONLY on the following context:\n{context}\nQuestion: {question}\n"""
-    prompt = ChatPromptTemplate.from_template(template)
-
-    chain = (
-        {"context": retriever, "question": RunnablePassthrough()}
-        | prompt
-        | llm
-        | StrOutputParser()
-    )
-    return chain
-
-
-def run_queries(
-    chain, queries: List[str]
-) -> Tuple[List[QueryMetrics], Dict[str, float]]:
-    collected: List[QueryMetrics] = []
-    latency_bucket: List[float] = []
-
-    for i, question in enumerate(queries, 1):
-        logger.info("\n--- Query %s/%s: %s", i, len(queries), question)
-        with Timer() as query_timer:
-            try:
-                response = chain.invoke(input=question)
-            except Exception as exc:  # pragma: no cover - runtime errors
-                logger.error("Error during query '%s': %s", question, exc)
-                response = f"ERROR: {exc}"
-        elapsed = query_timer.get_elapsed()
-        latency_bucket.append(elapsed)
-        logger.info("Response time: %.2fs", elapsed)
-
-        query_metrics = QueryMetrics(
-            query=question,
-            response=response,
-            response_time=elapsed,
-            chunks_retrieved=3,
-            is_accurate=evaluate_query_accuracy(question, response),
-        )
-        collected.append(query_metrics)
-
-    latency_summary = {
-        "min": min(latency_bucket) if latency_bucket else 0.0,
-        "max": max(latency_bucket) if latency_bucket else 0.0,
-        "mean": statistics.fmean(latency_bucket) if latency_bucket else 0.0,
-    }
-    if len(latency_bucket) >= 2:
-        latency_summary["stdev"] = statistics.pstdev(latency_bucket)
-    return collected, latency_summary
-
-
 def run_experiment(config: RunConfig) -> ExperimentMetrics:
-    ensure_ollama_up(config)
+    ensure_ollama_models([config.model_name, config.embedding_model])
 
     with Timer() as chunk_timer:
-        _, chunks = ingest_and_split(config)
+        documents = load_documents(config.doc_path)
+        chunks = split_documents(
+            documents, config.chunk_size, config.chunk_overlap
+        )
     chunk_stats = summarize_chunks(chunks)
     chunk_stats["chunk_time_s"] = chunk_timer.get_elapsed()
 
-    vector_db, indexing_time, store_mode = build_vector_store(chunks, config)
+    embeddings = build_embeddings(config.embedding_model)
+    persist_target = None if config.no_persist else config.persist_dir
+    vector_db, indexing_time, store_mode = build_vector_store(
+        chunks,
+        embeddings,
+        config.vector_store_name,
+        persist_target,
+        config.force_reindex,
+    )
 
-    chain = create_chain(vector_db, config)
+    llm = build_llm(config.model_name)
+    retriever = build_retriever(vector_db, retriever_k=config.retriever_k)
+    chain = build_chain(
+        retriever, llm, prompt_template=DEFAULT_PROMPT_TEMPLATE
+    )
     query_set = get_all_queries() if config.use_all_queries else get_baseline_queries()
 
     experiment_label = (
@@ -330,7 +189,13 @@ def run_experiment(config: RunConfig) -> ExperimentMetrics:
     metrics.num_chunks = int(chunk_stats.get("count", 0))
     metrics.indexing_time = indexing_time
 
-    queries_metrics, latency_stats = run_queries(chain, query_set)
+    queries_metrics, latency_stats = run_query_batch(
+        chain,
+        query_set,
+        evaluate_query_accuracy,
+        chunks_retrieved=config.retriever_k,
+        logger_obj=logger,
+    )
     metrics.queries.extend(queries_metrics)
     metrics.metadata.update(
         {

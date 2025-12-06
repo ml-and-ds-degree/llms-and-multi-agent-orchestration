@@ -25,17 +25,20 @@ from pathlib import Path
 # Add parent directory to path for imports
 sys.path.append(str(Path(__file__).parent.parent))
 
-from langchain_community.document_loaders import PyPDFLoader
-from langchain_community.vectorstores import Chroma
-from langchain_ollama import OllamaEmbeddings, ChatOllama
-from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.output_parsers import StrOutputParser
-from langchain_core.runnables import RunnablePassthrough
-from langchain_text_splitters import RecursiveCharacterTextSplitter
-import ollama
-
-from utils.metrics import ExperimentMetrics, QueryMetrics, Timer, print_metrics_summary
-from queries import get_baseline_queries, get_query_info, evaluate_query_accuracy
+from utils.metrics import ExperimentMetrics, Timer, print_metrics_summary
+from utils.rag_pipeline import (
+    DEFAULT_PROMPT_TEMPLATE,
+    build_chain,
+    build_embeddings,
+    build_llm,
+    build_retriever,
+    build_vector_store,
+    ensure_ollama_models,
+    load_documents,
+    run_query_batch,
+    split_documents,
+)
+from queries import get_baseline_queries, evaluate_query_accuracy
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -47,86 +50,8 @@ MODEL_NAME = "llama3.2"
 EMBEDDING_MODEL = "nomic-embed-text"
 VECTOR_STORE_NAME = "simple-rag"
 PERSIST_DIR = "./results/chroma_baseline"
-PORT = 11434
 CHUNK_SIZE = 1200
 CHUNK_OVERLAP = 300
-
-
-def ingest_pdf(doc_path: str):
-    """Load PDF documents."""
-    logger.info(f"Loading PDF from: {doc_path}")
-    if os.path.exists(doc_path):
-        loader = PyPDFLoader(file_path=doc_path)
-        data = loader.load()
-        logger.info("PDF loaded successfully.")
-        return data
-    else:
-        logger.error(f"PDF file not found at path: {doc_path}")
-        return None
-
-
-def split_documents(documents):
-    """Split documents into smaller chunks."""
-    logger.info(
-        f"Splitting documents with chunk_size={CHUNK_SIZE}, overlap={CHUNK_OVERLAP}"
-    )
-    text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size=CHUNK_SIZE, chunk_overlap=CHUNK_OVERLAP
-    )
-    chunks = text_splitter.split_documents(documents)
-    logger.info(f"Documents split into {len(chunks)} chunks.")
-    return chunks
-
-
-def create_vector_db(chunks):
-    """Create a vector database from document chunks."""
-    logger.info("Validating Ollama server availability on localhost:%s", PORT)
-    try:
-        ollama.list()
-    except Exception as exc:
-        logger.error("Ollama server not reachable: %s", exc)
-        raise
-
-    logger.info(f"Pulling embedding model: {EMBEDDING_MODEL}")
-    ollama.pull(EMBEDDING_MODEL)
-
-    logger.info("Creating vector database with persistence at %s", PERSIST_DIR)
-    vector_db = Chroma.from_documents(
-        documents=chunks,
-        embedding=OllamaEmbeddings(model=EMBEDDING_MODEL),
-        collection_name=VECTOR_STORE_NAME,
-        persist_directory=PERSIST_DIR,
-    )
-    logger.info("Vector database created and persisted.")
-    return vector_db
-
-
-def create_retriever(vector_db, llm):
-    """Create a retriever with k=3 (exactly as described in the baseline video)."""
-    retriever = vector_db.as_retriever(search_kwargs={"k": 3})
-    logger.info("Retriever created (similarity_search k=3).")
-    return retriever
-
-
-def create_chain(retriever, llm):
-    """Create the RAG chain (EXACTLY as in video)."""
-    # RAG prompt
-    template = """Answer the question based ONLY on the following context:
-{context}
-Question: {question}
-"""
-
-    prompt = ChatPromptTemplate.from_template(template)
-
-    chain = (
-        {"context": retriever, "question": RunnablePassthrough()}
-        | prompt
-        | llm
-        | StrOutputParser()
-    )
-
-    logger.info("Chain created successfully.")
-    return chain
 
 
 def run_experiment():
@@ -146,72 +71,55 @@ def run_experiment():
     )
 
     # Step 1: Load and process the PDF document
-    data = ingest_pdf(DOC_PATH)
-    if data is None:
-        logger.error("Failed to load PDF. Exiting.")
+    try:
+        data = load_documents(Path(DOC_PATH))
+    except FileNotFoundError as exc:
+        logger.error("Failed to load PDF: %s", exc)
         return None
 
     # Step 2: Split the documents into chunks
     with Timer() as chunk_timer:
-        chunks = split_documents(data)
+        chunks = split_documents(data, CHUNK_SIZE, CHUNK_OVERLAP)
     logger.info(f"Chunking took {chunk_timer.get_elapsed():.2f}s")
 
     metrics.num_chunks = len(chunks)
 
     # Step 3: Create the vector database
     with Timer() as index_timer:
-        vector_db = create_vector_db(chunks)
+        ensure_ollama_models([MODEL_NAME, EMBEDDING_MODEL])
+        embeddings = build_embeddings(EMBEDDING_MODEL)
+        vector_db, _, _ = build_vector_store(
+            chunks,
+            embeddings,
+            VECTOR_STORE_NAME,
+            Path(PERSIST_DIR),
+            force_reindex=True,
+        )
 
     metrics.indexing_time = index_timer.get_elapsed()
     logger.info(f"Indexing took {metrics.indexing_time:.2f}s")
 
     # Step 4: Initialize the language model
-    llm = ChatOllama(model=MODEL_NAME)
+    llm = build_llm(MODEL_NAME)
 
     # Step 5: Create the retriever
-    retriever = create_retriever(vector_db, llm)
+    retriever = build_retriever(vector_db, retriever_k=3)
 
     # Step 6: Create the chain
-    chain = create_chain(retriever, llm)
+    chain = build_chain(retriever, llm, prompt_template=DEFAULT_PROMPT_TEMPLATE)
 
     # Step 7: Run test queries
     test_queries = get_baseline_queries()
     logger.info(f"\nRunning {len(test_queries)} test queries...")
 
-    for i, query in enumerate(test_queries, 1):
-        logger.info(f"\n--- Query {i}/{len(test_queries)} ---")
-        logger.info(f"Question: {query}")
-
-        with Timer() as query_timer:
-            try:
-                response = chain.invoke(input=query)
-            except Exception as e:
-                logger.error(f"Error processing query: {e}")
-                response = f"ERROR: {str(e)}"
-
-        query_time = query_timer.get_elapsed()
-        logger.info(f"Response time: {query_time:.2f}s")
-        logger.info(f"Response: {response[:200]}...")
-
-        # Record metrics
-        is_accurate = evaluate_query_accuracy(query, response)
-        query_info = get_query_info(query)
-        retrieved_chunks = 3
-
-        if query_info is None:
-            logger.warning("Query metadata missing for %s; accuracy set to None", query)
-
-        if is_accurate is None:
-            logger.warning("Could not auto-assess accuracy for query '%s'", query)
-
-        query_metrics = QueryMetrics(
-            query=query,
-            response=response,
-            response_time=query_time,
-            chunks_retrieved=retrieved_chunks,
-            is_accurate=is_accurate,
-        )
-        metrics.queries.append(query_metrics)
+    query_metrics, _ = run_query_batch(
+        chain,
+        test_queries,
+        evaluate_query_accuracy,
+        chunks_retrieved=3,
+        logger_obj=logger,
+    )
+    metrics.queries.extend(query_metrics)
 
     # Print summary
     print_metrics_summary(metrics)
