@@ -37,13 +37,6 @@ RUN curl -fsSL https://bun.sh/install | bash -s "bun-v${BUN_VERSION}"
 # Add Bun to PATH
 ENV PATH="/root/.bun/bin:${PATH}"
 
-# Install Ollama
-# Using official installation script
-# Note: Ollama doesn't provide version-specific installation URLs in their script
-# The script installs the latest stable version
-RUN curl -fsSL https://ollama.com/install.sh | sh
-
-
 # Switch back to dialog for any ad-hoc use of apt-get
 ENV DEBIAN_FRONTEND=dialog
 
