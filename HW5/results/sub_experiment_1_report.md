@@ -18,9 +18,9 @@
 
 ## Baseline checklist (video-specific prompts)
 
-- *Which embedding model is recommended in the video and why?* → `nomic-embed-text`, because it is lightweight, open, and avoids rate-limit/API-key hurdles for local demos.
-- *What port is the Ollama server on and when should it change?* → Default `11434`; only change when another service occupies the port or when running multiple Ollama instances side-by-side.
-- *Which flags appear in `ollama create` in the demo?* → `--file` (to load a Modelfile) and `--model` (to name the resulting artifact). This run mirrored those defaults when validating local availability.
+- *Which embedding model is recommended in the video and why?* → The video recommends `nomic-embed-text` because it is a high-performing open embedding model with a large token context window.
+- *What port is the Ollama server on and when should it change?* → The server runs on port `11434`. The video does not mention when this port should change.
+- *Which flags appear in `ollama create` in the demo?* → The `-f` flag is used in the demo to specify the path to the Modelfile.
 
 ## Execution log highlights
 

@@ -23,7 +23,7 @@ Each mode reuses `experiments/experiment_3_local_vs_cloud.py`, the BOI.pdf corpu
 
 **Q:** Why does the video emphasize running Ollama locally when dealing with proprietary data?
 
-**A:** Because keeping the LLM on `localhost:11434` avoids sending sensitive context over the network, eliminating API keys, rate limits, and privacy concerns—trade-offs that become apparent in the hybrid/cloud variants below.
+**A:** To ensure enhanced privacy and security by keeping sensitive data on your own hardware rather than sending it to external, cloud-based servers.
 
 ## Metrics snapshot (from `results/experiment_3_*.json`)
 
