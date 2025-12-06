@@ -1,3 +1,5 @@
+#!/usr/bin/env -S uv run
+
 """
 Experiment 1: Baseline RAG Implementation
 Following the exact setup from the Ollama Fundamentals video.
@@ -17,14 +19,16 @@ Configuration (Per Video):
 - Retriever: similarity_search with k=3 (per video instructions)
 """
 
+import logging
 import os
 import sys
-import logging
 from pathlib import Path
 
-# Add parent directory to path for imports
 sys.path.append(str(Path(__file__).parent.parent))
 
+from queries import evaluate_query_accuracy, get_baseline_queries
+
+# Add parent directory to path for imports
 from utils.metrics import ExperimentMetrics, Timer, print_metrics_summary
 from utils.rag_pipeline import (
     DEFAULT_PROMPT_TEMPLATE,
@@ -38,7 +42,6 @@ from utils.rag_pipeline import (
     run_query_batch,
     split_documents,
 )
-from queries import get_baseline_queries, evaluate_query_accuracy
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

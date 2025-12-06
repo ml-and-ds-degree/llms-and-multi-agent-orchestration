@@ -10,22 +10,22 @@
   "queries": [
     {
       "query": "How to report BOI?",
-      "response": "You can report Beneficial Ownership Information electronically by accessing the BOI E-Filing portal at http://boiefiling.fincen.gov (accessible beginning on January 1, 2024). You can submit your report through either of two methods:\n\n* Upload finalized PDF version of BOIR and submit online\n* Fill out Web-based version of BOIR and submit online\n\nBoth methods require the filing to be done online as BOIRs cannot be mailed or faxed to FinCEN.",
-      "response_time": 48.57045139900583,
+      "response": "According to the provided context, it appears that there are multiple documents with the same title and metadata. However, one document mentions that \"More information on where to look is provided below.\" \n\nLooking at the page content of the second document (id='74f59d26-f4b1-4f15-ac18-d2f17112568a'), it does not provide any specific instructions for reporting BOI.",
+      "response_time": 5.212699837007676,
       "chunks_retrieved": 3,
       "is_accurate": true
     },
     {
       "query": "What is the document about?",
-      "response": "The document appears to be a report or instruction guide related to beneficial ownership information reporting requirements, specifically for entities required to file reports with the Financial Crimes Enforcement Network (FinCEN). It provides guidance on who must report, what they must report, and when they must report.",
-      "response_time": 43.612603481000406,
+      "response": "The document appears to be instructions for filing a report related to beneficial ownership information, specifically for companies. The report has multiple sections, including identifying the company's document number and the jurisdiction that issued the document.",
+      "response_time": 4.114195799003937,
       "chunks_retrieved": 3,
       "is_accurate": true
     },
     {
       "query": "What are the main points as a business owner I should be aware of?",
-      "response": "Based on the provided context, as a business owner, you should be aware of the following main points:\n\n1. If your entity is a \"reporting company\" and does not qualify for an exemption, you are required to report beneficial ownership information to FinCEN.\n2. Beneficial ownership information includes information about the entity, its beneficial owners, and in certain cases, its company applicants.\n3. The person submitting beneficial ownership information must certify that it is true, correct, and complete.\n4. You can find more information on how to identify beneficial owners by reviewing Chapter 2 of FinCEN's Small Entity Compliance Guide.\n5. To learn more about the reporting requirements for your entity, review Chapter 3 of FinCEN's Small Entity Compliance Guide.\n\nAdditionally, it is recommended to:\n\n- Review Chapter 1 of FinCEN's Small Entity Compliance Guide to determine if your entity qualifies for an exemption.\n- View interactive flowcharts, checklists, and other aids provided in the Small Entity Compliance Guide to help you determine whether your entity needs to file a BOIR with FinCEN and how to comply with reporting requirements.",
-      "response_time": 49.661396979005076,
+      "response": "Based on the provided context, here are the main points that a business owner should be aware of regarding beneficial ownership information reporting requirements:\n\n1. **Report beneficial ownership information**: The Corporate Transparency Act requires certain types of U.S. and foreign entities to report beneficial ownership information to FinCEN.\n2. **Use Beneficial Ownership Information Reports (BOIRs)**: Beneficial ownership information is reported to FinCEN through BOIRs.\n3. **Guidance on reporting requirements**: FinCEN's website includes guidance about the beneficial ownership information reporting requirements, and their Small Entity Compliance Guide provides more detailed information on who must report, what they must report, and when they must report.\n4. **FinCEN ID for beneficial owners**: Reporting companies may provide a FinCEN Identifier for a beneficial owner instead of completing Items 37 through 51.",
+      "response_time": 8.779317617998458,
       "chunks_retrieved": 3,
       "is_accurate": true
     }
@@ -50,16 +50,25 @@
         1170,
         326
       ],
-      "chunk_time_s": 0.5762224570062244
+      "chunk_time_s": 0.4400742989964783
     },
     "query_set": "baseline",
     "latency_snapshot": {
-      "min": 43.612603481000406,
-      "max": 49.661396979005076,
-      "mean": 47.28148395300377,
-      "stdev": 2.6322428336579815
+      "min": 4.114195799003937,
+      "max": 8.779317617998458,
+      "mean": 6.035404418003357,
+      "stdev": 1.9913935685357205
+    },
+    "config": {
+      "model": "llama3.2",
+      "embedding": "nomic-embed-text",
+      "chunk_size": 1200,
+      "chunk_overlap": 300,
+      "retriever_k": 3,
+      "persist_dir": "/workspaces/llms-and-multi-agent-orchestration/HW5/results/chroma_baseline",
+      "no_persist": false
     }
   },
-  "avg_response_time": 47.28148395300377,
+  "avg_response_time": 6.035404418003357,
   "accuracy_rate": 1.0
 }

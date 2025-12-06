@@ -29,27 +29,27 @@ Each mode reuses `experiments/experiment_3_local_vs_cloud.py`, the BOI.pdf corpu
 
 | Metric | All Local | Hybrid (cloud LLM) | Cloud (LLM + embeddings) |
 | --- | --- | --- | --- |
-| Indexing time | **8.90 s** (persist dir reused) | **8.69 s** | **11.06 s** (in-memory rebuild) |
-| Avg response latency | **43.28 s** | **59.63 s** | **45.85 s** |
+| Indexing time | **0.00 s** (persist dir reused) | **0.00 s** (persist dir reused) | **6.68 s** (in-memory rebuild) |
+| Avg response latency | **8.48 s** | **8.37 s** | **7.92 s** |
 | Accuracy | 100% | 100% | 100% |
-| Network dependency | None (offline safe) | LLM only (API key + rate limit) | Embeddings + LLM (double dependency) |
-| Cloud latency logs | — | `cloud_llm.avg=0.567 s` | `embedding.avg=0.706 s`, `cloud_llm.avg=0.636 s` |
+| Network dependency | None (offline safe) | Simulated cloud LLM | Simulated cloud embeddings + LLM |
+| Cloud latency logs | — | `llm_latency.avg=0.61 s` (simulated) | `embedding.avg=0.52 s`, `llm.avg=0.59 s` (simulated) |
 | Vector store mode | persisted Chroma | persisted Chroma | in-memory (stateless) |
 
 ### Query-level timing (seconds)
 
 | Query | Local | Hybrid | Cloud |
 | --- | --- | --- | --- |
-| How to report BOI? | 39.52 | 53.83 | 43.97 |
-| What is the document about? | 41.77 | 49.09 | 39.75 |
-| Business owner main points? | 48.54 | 75.98 | 53.82 |
+| How to report BOI? | 10.69 | 11.03 | 6.12 |
+| What is the document about? | 5.48 | 5.39 | 6.87 |
+| Business owner main points? | 9.28 | 8.69 | 10.78 |
 
 ## Observations & takeaways
 
-1. **Hybrid overhead dominated by network orchestration:** Even though Groq responded in ~0.57 s, the full path swelled to ~60 s because the pipeline now waits on HTTP setup plus LangChain streaming hooks; local inference avoided that glue code entirely.
-2. **Cloud mode regains some latency but at a cold-start cost:** Shipping embeddings to the cloud removed local GPU/CPU contention, trimming per-query latency back near the baseline, but the missing `persist_directory` forced a fresh 11 s indexing tax every run.
-3. **Accuracy parity hides privacy trade-offs:** All three modes answered correctly, yet only the local path kept BOI snippets offline. Hybrid/cloud runs require API hygiene (keys, rate limits) that the video warns about for sensitive corpora.
-4. **Chunk statistics stay identical:** With chunk_count fixed at 48 and chunk_time ≈0.45–0.58 s, any latency drift clearly stems from network + LLM changes, not preprocessing variance.
+1. **Local and hybrid performance parity:** Both local and hybrid modes achieved similar latencies (~8.4s avg), demonstrating that the simulated cloud LLM latency overhead is manageable when embeddings remain local.
+2. **Cloud mode efficiency with trade-offs:** Cloud mode achieved the fastest average response time (7.92s) but at the cost of a 6.68s indexing time on every run due to in-memory vector storage. The lack of persistence makes this unsuitable for production unless ephemeral deployments are intended.
+3. **Accuracy maintained across all modes:** All three deployment strategies achieved 100% accuracy on the baseline queries, indicating that the choice between local and cloud primarily impacts latency and infrastructure requirements rather than answer quality.
+4. **Simulated latency insights:** The experiment successfully demonstrated latency injection patterns, with cloud embedding calls adding ~0.52s and LLM calls adding ~0.59s of simulated network overhead per request.
 
 ## Evidence checklist
 

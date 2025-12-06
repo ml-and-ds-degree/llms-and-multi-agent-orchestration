@@ -1,5 +1,5 @@
 """
-Test queries for BOI.pdf (Bank of Israel / Beneficial Ownership Information)
+Test queries for BOI.pdf (Beneficial Ownership Information)
 These queries are designed to test different aspects of RAG retrieval and
 provide lightweight heuristics for automatic accuracy checks.
 """

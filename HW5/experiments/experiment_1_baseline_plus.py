@@ -25,12 +25,11 @@ from __future__ import annotations
 import argparse
 import logging
 import os
-import sys
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
 
-from utils.rag_pipeline import (
+from HW5.utils.rag_pipeline import (
     DEFAULT_PROMPT_TEMPLATE,
     build_chain,
     build_embeddings,
@@ -45,7 +44,7 @@ from utils.rag_pipeline import (
 )
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-sys.path.append(str(BASE_DIR))
+
 
 from queries import (  # noqa: E402  # pylint: disable=wrong-import-position
     evaluate_query_accuracy,
@@ -140,9 +139,7 @@ def run_experiment(config: RunConfig) -> ExperimentMetrics:
 
     with Timer() as chunk_timer:
         documents = load_documents(config.doc_path)
-        chunks = split_documents(
-            documents, config.chunk_size, config.chunk_overlap
-        )
+        chunks = split_documents(documents, config.chunk_size, config.chunk_overlap)
     chunk_stats = summarize_chunks(chunks)
     chunk_stats["chunk_time_s"] = chunk_timer.get_elapsed()
 
@@ -158,9 +155,7 @@ def run_experiment(config: RunConfig) -> ExperimentMetrics:
 
     llm = build_llm(config.model_name)
     retriever = build_retriever(vector_db, retriever_k=config.retriever_k)
-    chain = build_chain(
-        retriever, llm, prompt_template=DEFAULT_PROMPT_TEMPLATE
-    )
+    chain = build_chain(retriever, llm, prompt_template=DEFAULT_PROMPT_TEMPLATE)
     query_set = get_all_queries() if config.use_all_queries else get_baseline_queries()
 
     experiment_label = (
