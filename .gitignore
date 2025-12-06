@@ -263,3 +263,4 @@ Temporary Items
 
 # Stuff
 .ignore/
+**/chroma*
