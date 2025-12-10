@@ -3,6 +3,11 @@
 ## Overview
 This project implements and evaluates various Retrieval-Augmented Generation (RAG) pipeline architectures using Ollama. It is designed to benchmark performance metrics such as latency, accuracy, and indexing time across different configurations, including local vs. cloud deployment, model size variations, and advanced retrieval techniques like contextualization and reranking.
 
+## Package Information
+- **Package Name**: `hw5-rag-pipeline`
+- **Version**: 0.1.0
+- **Python**: >=3.13
+
 ## Prerequisites
 *   **Devcontainer**: This project is configured to run in a devcontainer environment.
 *   **Ollama**: The local inference engine must be installed and running in the devcontainer.
@@ -10,18 +15,58 @@ This project implements and evaluates various Retrieval-Augmented Generation (RA
 *   **Gemini API Key** (Optional): Required for calculating the "AI Score" metric.
 *   **Ollama Cloud/Remote Access** (Optional): Required for the cloud/hybrid experiments.
 
-## Setup
+## Installation
 
-1.  **Open in Devcontainer:**
-    Open this repository in VS Code and use "Reopen in Container" to start the devcontainer environment.
-
-2.  **Install Dependencies:**
-    This project uses `uv` for dependency management. Simply run:
+### Option 1: Install from Source (Development)
+1.  **Navigate to HW5 directory:**
     ```bash
-    uv sync
+    cd HW5
     ```
 
-3.  **Environment Variables:**
+2.  **Install with uv:**
+    ```bash
+    # Install with all dependencies
+    uv sync
+    
+    # Or install with dev dependencies
+    uv sync --extra dev
+    ```
+
+### Option 2: Install from requirements.txt
+If you prefer using pip or other package managers:
+
+```bash
+cd HW5
+
+# Install base dependencies
+pip install -r requirements.txt
+
+# Or install with dev dependencies
+pip install -r requirements-dev.txt
+```
+
+The requirements files are generated from `pyproject.toml` using:
+```bash
+# Regenerate requirements.txt (if needed)
+uv pip compile pyproject.toml -o requirements.txt
+uv pip compile pyproject.toml --extra dev -o requirements-dev.txt
+```
+
+### Option 3: Install as a Package
+```bash
+# From the HW5 directory
+cd HW5
+
+# Build the package
+uv build
+
+# Install the built wheel
+uv pip install dist/hw5_rag_pipeline-0.1.0-py3-none-any.whl
+```
+
+## Setup
+
+1.  **Environment Variables:**
     Copy the example environment file and configure your keys.
     ```bash
     cp .env.example .env
@@ -34,7 +79,8 @@ This project implements and evaluates various Retrieval-Augmented Generation (RA
 
 ## Running Experiments
 
-Navigate to the `HW5` directory:
+All experiments should be run from the `HW5` directory as Python modules:
+
 ```bash
 cd HW5
 ```
@@ -66,5 +112,79 @@ Tests contextual retrieval and reranking techniques.
 python -m experiments.experiment_4_advanced
 ```
 
+## Running Tests
+
+```bash
+# Run all tests
+uv run pytest
+
+# Run specific test files
+uv run pytest tests/test_metrics.py
+uv run pytest tests/test_rag_pipeline.py
+```
+
+## Package Structure
+
+```
+HW5/
+├── experiments/           # Experiment modules
+│   ├── experiment_1_baseline.py
+│   ├── experiment_1_baseline_plus.py
+│   ├── experiment_3_local_vs_cloud.py
+│   └── experiment_4_advanced.py
+├── utils/                 # Core utilities
+│   ├── contextualizer.py  # Contextual chunking
+│   ├── metrics.py         # Performance metrics
+│   ├── rag_pipeline.py    # RAG pipeline components
+│   ├── rerankers.py       # Reranking algorithms
+│   └── visualize.py       # Visualization tools
+├── tests/                 # Test suite
+├── data/                  # Input data (BOI.pdf)
+├── results/               # Experiment outputs
+└── queries.py            # Test queries and evaluation
+```
+
+## Using the Package in Code
+
+```python
+# Import utilities
+from utils import (
+    build_chain,
+    build_embeddings,
+    build_llm,
+    ExperimentMetrics,
+    Timer
+)
+
+# Import queries
+from queries import get_baseline_queries, evaluate_query_accuracy
+
+# Use in your code
+queries = get_baseline_queries()
+metrics = ExperimentMetrics(
+    experiment_name="My Experiment",
+    model_name="llama3.2"
+)
+```
+
 ## Results
 Experiment results are saved as JSON files in `HW5/results/`. The final summary report can be found at `HW5/results/final_summary_report.md`.
+
+## Development
+
+To contribute or modify the package:
+
+1. Install with dev dependencies:
+   ```bash
+   uv sync --extra dev
+   ```
+
+2. Run tests:
+   ```bash
+   uv run pytest
+   ```
+
+3. Build the package:
+   ```bash
+   uv build
+   ```
