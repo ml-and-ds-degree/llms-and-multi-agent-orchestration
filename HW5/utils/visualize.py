@@ -8,7 +8,7 @@ Generates comparison charts from JSON result files.
 import json
 import logging
 from pathlib import Path
-from typing import Dict, List, Any
+from typing import Any, Dict, List
 
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 RESULTS_DIR = BASE_DIR / "results"
-CHARTS_DIR = BASE_DIR / "charts"
+CHARTS_DIR = BASE_DIR / "assets"
 
 # Map file names/keys to display labels
 LABELS = {
@@ -60,6 +60,17 @@ def load_results() -> List[Dict[str, Any]]:
                 key = file_path.stem
                 data["display_label"] = LABELS.get(key, key)
                 data["filename"] = key
+
+                # Calculate average AI Score from queries if available
+                queries = data.get("queries", [])
+                if queries:
+                    scores = [q.get("ai_score", 0.0) for q in queries]
+                    data["calculated_accuracy"] = (
+                        sum(scores) / len(scores) if scores else 0.0
+                    )
+                else:
+                    data["calculated_accuracy"] = data.get("accuracy_rate", 0.0)
+
                 results.append(data)
         except Exception as e:
             logger.warning(f"Failed to load {file_path}: {e}")
@@ -174,6 +185,42 @@ def plot_chunk_counts(df: pd.DataFrame):
     plt.close()
 
 
+def plot_accuracy_score(df: pd.DataFrame):
+    """Generate bar chart for AI Accuracy Score."""
+    plt.figure(figsize=(12, 6))
+
+    # Sort by accuracy
+    df_sorted = df.sort_values("calculated_accuracy", ascending=False)
+
+    bars = plt.bar(
+        df_sorted["display_label"],
+        df_sorted["calculated_accuracy"],
+        color=[COLORS.get(l, "#7f7f7f") for l in df_sorted["display_label"]],
+    )
+
+    plt.title("Average AI Score by Experiment", fontsize=14, pad=20)
+    plt.ylabel("Score (0.0 - 1.0)", fontsize=12)
+    plt.xticks(rotation=45, ha="right")
+    plt.grid(axis="y", linestyle="--", alpha=0.7)
+    plt.ylim(0, 1.1)  # Set y-axis to slightly above 1.0 for clarity
+
+    for bar in bars:
+        height = bar.get_height()
+        plt.text(
+            bar.get_x() + bar.get_width() / 2.0,
+            height,
+            f"{height:.2f}",
+            ha="center",
+            va="bottom",
+        )
+
+    plt.tight_layout()
+    output_path = CHARTS_DIR / "accuracy_score.png"
+    plt.savefig(output_path, dpi=300)
+    logger.info(f"Saved accuracy chart to {output_path}")
+    plt.close()
+
+
 def main():
     CHARTS_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -189,12 +236,14 @@ def main():
     df["avg_response_time"] = pd.to_numeric(df["avg_response_time"])
     df["indexing_time"] = pd.to_numeric(df["indexing_time"])
     df["num_chunks"] = pd.to_numeric(df["num_chunks"])
+    # calculated_accuracy is already float from load_results
 
     logger.info(f"Loaded {len(df)} experiment results.")
 
     plot_latency_comparison(df)
     plot_indexing_time(df)
     plot_chunk_counts(df)
+    plot_accuracy_score(df)
 
     logger.info("Visualization complete!")
 

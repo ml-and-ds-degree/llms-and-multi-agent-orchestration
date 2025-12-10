@@ -13,21 +13,21 @@
       "response": "To file a BOI, you must submit beneficial ownership information about the entity and its beneficial owners. You can find more information on how to identify beneficial owners by reviewing Chapter 2 of FinCEN's Small Entity Compliance Guide.\n\nYou should also review Chapter 4 of the guide for specific information required when filing a BOI report.\n\nAdditionally, if there is any change to the required information about a reporting company or its beneficial owners that was previously filed, you must file an updated BOIR no later than 30 days after the date on which the change occurred.\n\nIt is also recommended to consult Chapter 5 and Chapter 6 of FinCEN's Small Entity Compliance Guide for more information on reporting timelines.",
       "response_time": 7.769557810999686,
       "chunks_retrieved": 3,
-      "is_accurate": true
+      "ai_score": 1.0
     },
     {
       "query": "What is the document about?",
       "response": "The document appears to be a filing instruction manual for a report called \"Beneficial Ownership Information Reporting\" (BOI Report). It provides guidelines on how to fill out and submit the report, including instructions for attaching identifying documents and images. The report seems to be related to companies and their beneficial owners, and it includes sections for collecting information about the company's identity document and image attachment.",
       "response_time": 5.780753724000533,
       "chunks_retrieved": 3,
-      "is_accurate": true
+      "ai_score": 1.0
     },
     {
       "query": "What are the main points as a business owner I should be aware of?",
       "response": "As a business owner, you should be aware of the following main points regarding beneficial ownership information reporting:\n\n1. The Corporate Transparency Act requires certain types of U.S. and foreign entities to report beneficial ownership information to FinCEN.\n2. Beneficial ownership information is about the entity, its beneficial owners, and in certain cases, its company applicants.\n3. You must report this information through Beneficial Ownership Information Reports (BOIRs) to FinCEN.\n4. You can report a FinCEN Identifier for a beneficial owner instead of providing personal information.\n5. You can add or remove beneficial owners using the \"+\" or \"-\" keys at the top of Part III.\n\nIt's also recommended that you review FinCEN's Small Entity Compliance Guide, which includes interactive flowcharts, checklists, and other resources to help determine if an entity needs to file a BOIR with FinCEN and how to comply with the reporting requirements.",
       "response_time": 8.785063471004833,
       "chunks_retrieved": 3,
-      "is_accurate": true
+      "ai_score": 1.0
     }
   ],
   "metadata": {

@@ -13,21 +13,21 @@
       "response": "According to the document, to file a BOIR with FinCEN, you can refer to Chapter 4 of FinCEN's Small Entity Compliance Guide. The guide includes interactive flowcharts, checklists, and other tools to help determine whether an entity needs to file a BOIR and how to comply with the reporting requirements.",
       "response_time": 4.744097404007334,
       "chunks_retrieved": 3,
-      "is_accurate": true
+      "ai_score": 1.0
     },
     {
       "query": "What is the document about?",
       "response": "The document appears to be instructions for filing beneficial ownership information, specifically BOIR (Beneficial Ownership Information Reporting) reports. It provides guidance on identifying a company's applicant document number and the jurisdiction in which it was issued.",
       "response_time": 4.18480986400391,
       "chunks_retrieved": 3,
-      "is_accurate": true
+      "ai_score": 1.0
     },
     {
       "query": "What are the main points as a business owner I should be aware of?",
       "response": "Based on the provided context, here are the main points as a business owner you should be aware of:\n\n1. Reporting beneficial ownership information: You need to report your beneficial owners' information to FinCEN through Beneficial Ownership Information Reports (BOIRs). This includes providing details about the entity, its beneficial owners, and in certain cases, its company applicants.\n2. Use of \"Parent/Guardian\" vs. \"minor child\": If one of your beneficial owners is a minor child, you can report their parent or legal guardian's information instead using Item 35.\n3. Use of FinCEN Identifier: You can provide a FinCEN Identifier for a beneficial owner instead of reporting the owner's personal information (Items 36-51).",
       "response_time": 7.989274655992631,
       "chunks_retrieved": 3,
-      "is_accurate": true
+      "ai_score": 1.0
     }
   ],
   "metadata": {},

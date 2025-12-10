@@ -13,21 +13,21 @@
       "response": "To report Beneficial Ownership Information (BOI) according to FinCEN's Small Entity Compliance Guide, you must:\n\n1. Identify beneficial owners and company applicants by reviewing Chapter 4 of the guide.\n2. Verify that the information is true, correct, and complete.\n\nAdditionally, if there are any changes to the required information or identifying details in a BOIR filing, report it as soon as possible (no later than 30 days after the date the change occurred).",
       "response_time": 6.157441999006551,
       "chunks_retrieved": 3,
-      "is_accurate": true
+      "ai_score": 1.0
     },
     {
       "query": "What is the document about?",
       "response": "The document appears to be a set of instructions or guidelines for filing reports with the Bureau of International Investors (BOI). Specifically, it covers the procedures for identifying and attaching documents related to beneficial ownership information reporting. The document includes detailed steps and formatting requirements for various sections, such as Identifying Document Number (Item 31) and Identifying Document Image Attachment (Item 51), which suggests that it is a technical manual or guide for financial institutions, investment firms, or other companies operating in the United States.",
       "response_time": 3.453070896997815,
       "chunks_retrieved": 3,
-      "is_accurate": true
+      "ai_score": 1.0
     },
     {
       "query": "What are the main points as a business owner I should be aware of?",
       "response": "Based on the provided context, the main points for a business owner to be aware of as mentioned in the Beneficial Ownership Information Reporting Filing Instructions are:\n\n1. Reporting companies may also report a FinCEN Identifier instead of this information.\n2. There is no limit to the number of beneficial owners that can be reported.\n\nThese points highlight the importance of understanding and complying with the reporting requirements for beneficial ownership information, which is governed by the Corporate Transparency Act (CTA) and requires entities, including businesses, to report certain types of information about their beneficial owners to the Financial Crimes Enforcement Network (FinCEN).",
       "response_time": 3.833038600991131,
       "chunks_retrieved": 3,
-      "is_accurate": true
+      "ai_score": 1.0
     }
   ],
   "metadata": {

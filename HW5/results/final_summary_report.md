@@ -22,6 +22,7 @@ The study instrumented the pipeline to capture the following key performance ind
 *   **Indexing Time:** The duration required to ingest, chunk, embed, and persist the document corpus.
 *   **Response Latency:** The end-to-end time from query submission to final answer generation.
 *   **Accuracy:** A binary evaluation (Pass/Fail) based on keyword matching and manual verification against the ground truth.
+*   **AI Score:** A computed accuracy score (0.0 to 1.0) assessing the response's validity against the source document (BOI.pdf) using Gemini Pro 3 Preview.
 *   **Chunk Statistics:** Distribution of character lengths across document segments.
 
 ## 3. Experimental Results
@@ -29,13 +30,13 @@ The study instrumented the pipeline to capture the following key performance ind
 ### 3.1 Experiment 1: Baseline Replication
 The initial phase focused on establishing a reliable baseline by reproducing the architecture described in the reference material ("Ollama Course").
 *   **Configuration:** `llama3.2` (3B), `chunk_size=1200`, `chunk_overlap=300`, persisted Chroma store.
-*   **Results:** The baseline achieved 100% accuracy across three standard test queries with an average response latency of **6.04 seconds**.
+*   **Results:** The baseline achieved 100% accuracy across three standard test queries with an average response latency of **6.04 seconds**. All queries received an **AI Score of 1.0**.
 *   **Key Finding:** Vector store persistence is critical; reusing the index reduced initialization time to near-zero, whereas re-indexing required approximately 10 seconds per run.
 
 ### 3.2 Experiment 2: Architectural Deviations
 This phase tested the system's sensitivity to model size reduction and granular chunking.
-*   **Variation A (Smaller LLM):** Switching to `llama3.2:1b` reduced average latency to **4.48 seconds** (-26% vs. baseline) while maintaining 100% accuracy. This suggests that for relatively simple extraction tasks, smaller, distilled models offer a viable efficiency optimization.
-*   **Variation B (Aggressive Chunking):** Reducing chunk size to 300 characters (with 50 overlap) further lowered latency to **3.66 seconds**. However, this resulted in a fragmentation of the corpus into 150 micro-chunks. While accuracy remained high for this specific dataset, qualitative analysis suggests a high risk of context severance for queries spanning multiple segments.
+*   **Variation A (Smaller LLM):** Switching to `llama3.2:1b` reduced average latency to **4.48 seconds** (-26% vs. baseline) while maintaining 100% accuracy (**AI Score: 1.0**). This suggests that for relatively simple extraction tasks, smaller, distilled models offer a viable efficiency optimization.
+*   **Variation B (Aggressive Chunking):** Reducing chunk size to 300 characters (with 50 overlap) further lowered latency to **3.66 seconds**. However, this resulted in a fragmentation of the corpus into 150 micro-chunks. While accuracy remained high (**AI Score: 1.0**) for this specific dataset, qualitative analysis suggests a high risk of context severance for queries spanning multiple segments.
 
 ### 3.3 Experiment 3: Deployment Strategies
 This experiment evaluated the latency implications of local versus cloud-based LLM deployment, using real Ollama Cloud API with a 120B parameter model:
@@ -46,14 +47,14 @@ This experiment evaluated the latency implications of local versus cloud-based L
 *   **Cloud Superiority:** Contrary to simulated expectations, real cloud infrastructure demonstrated **2.3x faster response times** (3.61s vs 8.29s) despite using a model 40x larger than local.
 *   **Local Latency:** Average response time of **8.29 seconds** with `llama3.2` (3B).
 *   **Hybrid Cloud Latency:** Average response time of **3.61 seconds** with `gpt-oss:120b-cloud` (120B).
-*   **Accuracy:** Both configurations achieved **100% accuracy** on all test queries.
+*   **Accuracy:** Both configurations achieved **100% accuracy** (**AI Score: 1.0**) on all test queries.
 *   **Infrastructure Impact:** The results highlight that optimized cloud infrastructure (GPU availability, model optimization) can outweigh the benefits of local deployment, even with significantly larger models.
 
 ### 3.4 Experiment 4: Advanced Retrieval Techniques
 The final phase investigated whether algorithmic enhancements could improve retrieval quality.
 *   **Contextual Retrieval:** Prepending LLM-generated summaries to chunks increased indexing time by 63% and query latency by 44% (to **10.77 seconds**).
 *   **Reranking:** Implementing a retrieve-then-rerank workflow (k=10 candidates) caused a dramatic latency spike to **45.94 seconds** (+516% vs. baseline).
-*   **Outcome:** Neither technique improved accuracy beyond the baseline's 100%. The significant computational cost of reranking (approx. 10 additional LLM calls per query) proved prohibitive for this specific use case without yielding tangible benefits.
+*   **Outcome:** Neither technique improved accuracy beyond the baseline's 100% (**AI Score: 1.0**). The significant computational cost of reranking (approx. 10 additional LLM calls per query) proved prohibitive for this specific use case without yielding tangible benefits. However, `experiment_1_baseline_plus` showed a notable failure where the AI claimed no instructions were present (**AI Score: 0.0** for the first query), demonstrating the fragility of certain baseline configurations.
 
 ## 4. Discussion
 

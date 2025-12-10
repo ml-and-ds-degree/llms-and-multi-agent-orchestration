@@ -13,21 +13,21 @@
       "response": "According to the provided context, it appears that there are multiple documents with the same title and metadata. However, one document mentions that \"More information on where to look is provided below.\" \n\nLooking at the page content of the second document (id='74f59d26-f4b1-4f15-ac18-d2f17112568a'), it does not provide any specific instructions for reporting BOI.",
       "response_time": 5.212699837007676,
       "chunks_retrieved": 3,
-      "is_accurate": true
+      "ai_score": 0.0
     },
     {
       "query": "What is the document about?",
       "response": "The document appears to be instructions for filing a report related to beneficial ownership information, specifically for companies. The report has multiple sections, including identifying the company's document number and the jurisdiction that issued the document.",
       "response_time": 4.114195799003937,
       "chunks_retrieved": 3,
-      "is_accurate": true
+      "ai_score": 1.0
     },
     {
       "query": "What are the main points as a business owner I should be aware of?",
       "response": "Based on the provided context, here are the main points that a business owner should be aware of regarding beneficial ownership information reporting requirements:\n\n1. **Report beneficial ownership information**: The Corporate Transparency Act requires certain types of U.S. and foreign entities to report beneficial ownership information to FinCEN.\n2. **Use Beneficial Ownership Information Reports (BOIRs)**: Beneficial ownership information is reported to FinCEN through BOIRs.\n3. **Guidance on reporting requirements**: FinCEN's website includes guidance about the beneficial ownership information reporting requirements, and their Small Entity Compliance Guide provides more detailed information on who must report, what they must report, and when they must report.\n4. **FinCEN ID for beneficial owners**: Reporting companies may provide a FinCEN Identifier for a beneficial owner instead of completing Items 37 through 51.",
       "response_time": 8.779317617998458,
       "chunks_retrieved": 3,
-      "is_accurate": true
+      "ai_score": 1.0
     }
   ],
   "metadata": {

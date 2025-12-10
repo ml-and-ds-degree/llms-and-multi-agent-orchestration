@@ -389,6 +389,7 @@ To verify video comprehension:
 
 - ✅ JSON metrics files for Experiments 1–3 (baseline, variations, local vs cloud)
 - ✅ Sub-experiment markdown summaries (1–3)
+- ✅ AI-Score update: Each JSON response now includes an `ai_score` (0.0 - 1.0) evaluating accuracy against the BOI.pdf source document.
 - ⏳ Comparison/roll-up tables
 - ⏳ Visualization graphs (PNG)
 - ⏳ Screenshot of ollama commands
