@@ -1,0 +1,74 @@
+{
+  "experiment_name": "Experiment 2: Variation",
+  "model_name": "llama3.2:1b",
+  "embedding_model": "nomic-embed-text",
+  "chunk_size": 1200,
+  "chunk_overlap": 300,
+  "persist_directory": "/workspaces/llms-and-multi-agent-orchestration/HW5/results/chroma_llama32_1b",
+  "indexing_time": 6.054031129999203,
+  "num_chunks": 48,
+  "queries": [
+    {
+      "query": "How to report BOI?",
+      "response": "To report Beneficial Ownership Information (BOI) according to FinCEN's Small Entity Compliance Guide, you must:\n\n1. Identify beneficial owners and company applicants by reviewing Chapter 4 of the guide.\n2. Verify that the information is true, correct, and complete.\n\nAdditionally, if there are any changes to the required information or identifying details in a BOIR filing, report it as soon as possible (no later than 30 days after the date the change occurred).",
+      "response_time": 6.157441999006551,
+      "chunks_retrieved": 3,
+      "ai_score": 1.0
+    },
+    {
+      "query": "What is the document about?",
+      "response": "The document appears to be a set of instructions or guidelines for filing reports with the Bureau of International Investors (BOI). Specifically, it covers the procedures for identifying and attaching documents related to beneficial ownership information reporting. The document includes detailed steps and formatting requirements for various sections, such as Identifying Document Number (Item 31) and Identifying Document Image Attachment (Item 51), which suggests that it is a technical manual or guide for financial institutions, investment firms, or other companies operating in the United States.",
+      "response_time": 3.453070896997815,
+      "chunks_retrieved": 3,
+      "ai_score": 1.0
+    },
+    {
+      "query": "What are the main points as a business owner I should be aware of?",
+      "response": "Based on the provided context, the main points for a business owner to be aware of as mentioned in the Beneficial Ownership Information Reporting Filing Instructions are:\n\n1. Reporting companies may also report a FinCEN Identifier instead of this information.\n2. There is no limit to the number of beneficial owners that can be reported.\n\nThese points highlight the importance of understanding and complying with the reporting requirements for beneficial ownership information, which is governed by the Corporate Transparency Act (CTA) and requires entities, including businesses, to report certain types of information about their beneficial owners to the Financial Crimes Enforcement Network (FinCEN).",
+      "response_time": 3.833038600991131,
+      "chunks_retrieved": 3,
+      "ai_score": 1.0
+    }
+  ],
+  "metadata": {
+    "vector_store_mode": "rebuild",
+    "chunk_stats": {
+      "count": 48,
+      "min": 153,
+      "max": 1198,
+      "mean": 917.375,
+      "median": 1117.5,
+      "stdev": 328.02411147403984,
+      "p10": 383.20000000000005,
+      "p25": 726.5,
+      "p75": 1168.25,
+      "p90": 1181.4,
+      "sample_first5": [
+        153,
+        1058,
+        1198,
+        1170,
+        326
+      ],
+      "chunk_time_s": 0.4598887059983099
+    },
+    "query_set": "baseline",
+    "latency_snapshot": {
+      "min": 3.453070896997815,
+      "max": 6.157441999006551,
+      "mean": 4.4811838323318325,
+      "stdev": 1.1954008937109075
+    },
+    "config": {
+      "model": "llama3.2:1b",
+      "embedding": "nomic-embed-text",
+      "chunk_size": 1200,
+      "chunk_overlap": 300,
+      "retriever_k": 3,
+      "persist_dir": "/workspaces/llms-and-multi-agent-orchestration/HW5/results/chroma_llama32_1b",
+      "no_persist": false
+    }
+  },
+  "avg_response_time": 4.4811838323318325,
+  "accuracy_rate": 1.0
+}

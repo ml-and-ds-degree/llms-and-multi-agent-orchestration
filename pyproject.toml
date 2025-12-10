@@ -5,10 +5,8 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
-    "matplotlib>=3.10.7",
-    "pydantic-ai>=1.7.0",
-    "reflex>=0.8.17",
-    "sentence-transformers>=5.1.2",
+    # Shared dependencies across multiple HWs
+    "ollama",
 ]
 
 [project.optional-dependencies]
@@ -19,4 +17,40 @@ dev = [
     "pytest-playwright>=0.4.0",
     "playwright>=1.40.0",
     "requests>=2.31.0",
+]
+
+hw1 = [
+    # Reflex framework for chat UI
+    "reflex>=0.8.17",
+    # Pydantic AI for agent functionality
+    "pydantic-ai>=1.7.0",
+]
+
+hw3 = [
+    # Sentence transformers for embeddings
+    "sentence-transformers>=5.1.2",
+    # Matplotlib for visualization
+    "matplotlib>=3.10.7",
+    # Numpy for numerical operations
+    "numpy",
+]
+
+hw5 = [
+    # LangChain ecosystem for RAG pipeline
+    "langchain-community>=0.4.1",
+    "langchain-ollama>=1.0.0",
+    "langchain-text-splitters>=1.0.0",
+    "langchain-chroma>=1.0.0",
+    # Vector store and embeddings
+    "chromadb",
+    # Document processing
+    "pypdf",
+    "unstructured>=0.18.21",
+    # Reranking and retrieval
+    "rank-bm25>=0.2.2",
+    # Data analysis and visualization
+    "pandas>=2.3.3",
+    "matplotlib>=3.10.7",
+    # Environment management
+    "python-dotenv",
 ]
