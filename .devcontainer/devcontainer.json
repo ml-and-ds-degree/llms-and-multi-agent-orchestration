@@ -21,7 +21,8 @@
                 "ms-azuretools.vscode-containers",
                 "tamasfe.even-better-toml",
                 "christian-kohler.path-intellisense",
-                "seatonjiang.gitmoji-vscode"
+                "seatonjiang.gitmoji-vscode",
+                "bierner.markdown-mermaid"
             ]
         }
     },

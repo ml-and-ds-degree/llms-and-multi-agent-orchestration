@@ -17,13 +17,50 @@ All experiments were conducted within a controlled development container environ
 *   **Vector Database:** Chroma, utilized in both persisted and in-memory configurations.
 *   **Orchestration:** Custom Python scripts leveraging `langchain` primitives for document loading, splitting, and retrieval.
 
+![Ollama Models List](../assets/ollama-list.png)
+
 ### 2.2 Metrics
 The study instrumented the pipeline to capture the following key performance indicators (KPIs):
 *   **Indexing Time:** The duration required to ingest, chunk, embed, and persist the document corpus.
+
+    ![Indexing Time](../assets/indexing_time.png)
+
 *   **Response Latency:** The end-to-end time from query submission to final answer generation.
 *   **Accuracy:** A binary evaluation (Pass/Fail) based on keyword matching and manual verification against the ground truth.
+
+    ![Accuracy Score](../assets/accuracy_score.png)
+
 *   **AI Score:** A computed accuracy score (0.0 to 1.0) assessing the response's validity against the source document (BOI.pdf) using Gemini Pro 3 Preview.
 *   **Chunk Statistics:** Distribution of character lengths across document segments.
+
+    ![Chunk Counts](../assets/chunk_counts.png)
+
+### 2.3 System Architecture
+
+The following diagram illustrates the high-level architecture of the RAG pipeline used in this study, detailing both the ingestion and retrieval phases.
+
+```mermaid
+graph TD
+    subgraph Ingestion_Phase [Ingestion Phase]
+        PDF(BOI.pdf) --> Loader[Document Loader]
+        Loader --> Splitter[Text Splitter]
+        Splitter --> EmbedModel_Ingest[Embedding Model]
+        EmbedModel_Ingest --> VectorStore[(Vector Store - Chroma)]
+    end
+
+    subgraph Retrieval_Phase [Retrieval Phase]
+        UserQuery(User Query) --> EmbedModel_Query[Embedding Model]
+        EmbedModel_Query --> SimilaritySearch[Similarity Search]
+        VectorStore --> SimilaritySearch
+        SimilaritySearch --> Retriever[Retriever]
+        Retriever --> Reranker{Optional Reranker}
+        Reranker -->|Top K| LLM[LLM Inference]
+        LLM --> Response(Final Response)
+    end
+
+    style Ingestion_Phase fill:#e1f5fe,stroke:#01579b,stroke-width:2px
+    style Retrieval_Phase fill:#f3e5f5,stroke:#4a148c,stroke-width:2px
+```
 
 ## 3. Experimental Results
 
@@ -55,6 +92,8 @@ The final phase investigated whether algorithmic enhancements could improve retr
 *   **Contextual Retrieval:** Prepending LLM-generated summaries to chunks increased indexing time by 63% and query latency by 44% (to **10.77 seconds**).
 *   **Reranking:** Implementing a retrieve-then-rerank workflow (k=10 candidates) caused a dramatic latency spike to **45.94 seconds** (+516% vs. baseline).
 *   **Outcome:** Neither technique improved accuracy beyond the baseline's 100% (**AI Score: 1.0**). The significant computational cost of reranking (approx. 10 additional LLM calls per query) proved prohibitive for this specific use case without yielding tangible benefits. However, `experiment_1_baseline_plus` showed a notable failure where the AI claimed no instructions were present (**AI Score: 0.0** for the first query), demonstrating the fragility of certain baseline configurations.
+
+![Latency Comparison](../assets/latency_comparison.png)
 
 ## 4. Discussion
 
