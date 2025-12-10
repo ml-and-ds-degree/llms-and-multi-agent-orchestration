@@ -1,5 +1,5 @@
 {
-  "experiment_name": "Experiment 3: Hybrid",
+  "experiment_name": "Experiment 3: Hybrid (Cloud)",
   "model_name": "llama3.2",
   "embedding_model": "nomic-embed-text",
   "chunk_size": 1200,
@@ -10,29 +10,29 @@
   "queries": [
     {
       "query": "How to report BOI?",
-      "response": "According to the provided context, to report BOI (Beneficial Ownership Information), you need to provide the following information for each beneficial owner and company applicant required to be reported:\n\n1. Full legal name\n2. Date of birth\n3. Complete current address\n4. Unique identifying number and issuing jurisdiction from one of the following non-expired documents:\n   1. U.S. passport\n   2. Identification document issued by a State, local government, or Indian Tribe for the purpose of identifying the individual\n   3. State-issued driver\u2019s license\n   4. If none of (1)-(3) are available, a foreign passport\n\nYou may also provide a FinCEN identifier for a beneficial owner or company applicant instead of the above information.\n\nAdditionally, if a previously submitted BOIR needs to be corrected or updated, you need to complete a corrected or updated BOIR in its entirety with the necessary corrections or updates made to the information. Reporting companies must resubmit unchanged information along with the corrected or updated information.",
-      "response_time": 11.0308497990045,
+      "response": "**Reporting beneficial\u2011ownership information (BOI) to FinCEN is done by filing a Beneficial Ownership Information Report (BOIR).**  \n\n1. **Confirm you must file** \u2013  \n   *Check whether the entity is a \u201creporting company\u201d and whether it qualifies for any exemption (see Chapter\u202f1 of FinCEN\u2019s Small Entity Compliance Guide).*\n\n2. **Identify the required data** \u2013  \n   *Determine the entity\u2019s beneficial owners (and, when applicable, its company applicants) as described in Chapter\u202f2.*  \n   *The specific information to be reported (entity details, owner details, certifications, etc.) is listed in Chapter\u202f4.*\n\n3. **Prepare the BOIR** \u2013  \n   *Use the interactive flowcharts, checklists, and other aids in the Guide to verify that you have all required fields.*  \n   *The person signing the report must certify that the information is true, correct, and complete.*\n\n4. **File the BOIR with FinCEN** \u2013  \n   *Submit the completed BOIR through the filing channel specified by FinCEN (the Guide provides the exact filing method).*\n\n5. **Maintain and update the filing** \u2013  \n   *If any required information changes, file an updated BOIR **no later than 30\u202fdays** after the change occurs.*  \n   *If you discover an inaccuracy, correct it **no later than 30\u202fdays** after you become aware of it or should have known about it.*\n\n6. **Consult the Guide for details** \u2013  \n   *Further instructions, timelines, and FAQs are found in Chapters\u202f5 and\u202f6 of the Small Entity Compliance Guide.*\n\n**In short:** Determine if you are a reporting company, gather the required beneficial\u2011owner data, complete and certify the BOIR, file it with FinCEN, and file any required updates within 30\u202fdays of a change or discovered error.",
+      "response_time": 4.2531910609977785,
       "chunks_retrieved": 3,
       "is_accurate": true
     },
     {
       "query": "What is the document about?",
-      "response": "The document appears to be a set of filing instructions for a form related to beneficial ownership information reporting, specifically BOIR (Beneficial Ownership Information Reporting). The specific item being reported on is Item 31 and Item 32.",
-      "response_time": 5.392516435997095,
+      "response": "The document is a set of filing instructions for the\u202fBeneficial Ownership Information Reporting (BOIR)\u202fprocess.\u202fIt explains how to complete the BOIR form\u2014covering items such as entering the identifying\u2011document number and its issuing jurisdiction, attaching clear images of the identifying documents, size and format requirements for those attachments, and prohibited words/phrases to use in the form. In short, it is a guide for companies on how to prepare and submit their Beneficial Ownership Information Reports.",
+      "response_time": 1.9233741039934102,
       "chunks_retrieved": 3,
       "is_accurate": true
     },
     {
       "query": "What are the main points as a business owner I should be aware of?",
-      "response": "Based on the provided context, the main point that a business owner should be aware of is:\n\nIf the reporting company has a principal place of business in the United States or U.S. Territory, the street address should be that of the principal place of business. Otherwise, the street address should be the primary location in the United States or U.S. Territory where the reporting company conducts business.\n\nAdditionally, if a U.S. Territory is selected in item 13, then item 14 will be automatically populated with the relevant U.S. Territory.\n\nIt's also worth noting that reporting companies that check the box for Item 16 (Existing reporting company) are not required to report any company applicants and should proceed to Part III.",
-      "response_time": 8.686948752991157,
+      "response": "**Key take\u2011aways for you as a business owner (from the filing instructions you were given):**\n\n1. **You may be required to file a Beneficial Ownership Information Report (BOIR).**  \n   - The Corporate Transparency Act (CTA) obligates certain U.S. and foreign entities to submit beneficial\u2011owner data to FinCEN.  \n   - The Small\u2011Entity Compliance Guide on FinCEN\u2019s website contains flowcharts and checklists to help you determine whether your company must file.\n\n2. **What you must report \u2013 Part\u202fIII of the BOIR (fields\u202f35\u201151).**  \n   - Information about each beneficial owner (name, address, etc.) is entered in fields\u202f35\u201151.  \n   - There is **no limit** on the number of beneficial owners you can list.\n\n3. **You can use a FinCEN Identifier instead of full owner details.**  \n   - Item\u202f36 lets you provide a **FinCEN ID** (entered as a single text string) in place of the detailed data required in items\u202f37\u201151.\n\n4. **Special handling for minor owners.**  \n   - If a beneficial owner is a minor child, you may check the box in **Item\u202f35** and supply **parent/guardian information** instead of the child\u2019s details.\n\n5. **Adding or removing owners is straightforward.**  \n   - Use the \u201c+\u201d or \u201c\u2011\u201d keys at the top of the Part\u202fIII section to add or delete additional beneficial\u2011owner entries.\n\n6. **Helpful resources.**  \n   - The FinCEN Small\u2011Entity Compliance Guide (Chapter\u202f2 for identifying owners, Chapter\u202f3 for company applicants, Chapter\u202f4 for filing) provides step\u2011by\u2011step guidance, flowcharts, and checklists.\n\nThese points summarize what you need to know to comply with the CTA: determine filing obligation, gather the required owner information (or a FinCEN ID), handle minors via a guardian, and use the BOIR form\u2019s add/remove functions without worrying about a cap on owners.",
+      "response_time": 4.657262637017993,
       "chunks_retrieved": 3,
       "is_accurate": true
     }
   ],
   "metadata": {
-    "mode": "Hybrid",
-    "description": "Local embeddings/vector DB, cloud LLM",
+    "mode": "Hybrid (Cloud)",
+    "description": "Local embeddings/vector DB, Cloud LLM (gpt-oss:120b-cloud)",
     "vector_store_mode": "reuse",
     "chunk_stats": {
       "count": 48,
@@ -52,24 +52,16 @@
         1170,
         326
       ],
-      "chunk_time_s": 0.4802314019907499
+      "chunk_time_s": 0.32091984900762327
     },
     "query_set": "baseline",
     "latency_snapshot": {
-      "min": 5.392516435997095,
-      "max": 11.0308497990045,
-      "mean": 8.370104995997584,
-      "stdev": 2.3127174856807087
-    },
-    "cloud_latency": {
-      "llm_latency": {
-        "label": "cloud_llm",
-        "calls": 3.0,
-        "total_seconds": 1.726,
-        "avg_seconds": 0.575
-      }
+      "min": 1.9233741039934102,
+      "max": 4.657262637017993,
+      "mean": 3.6112759340030607,
+      "stdev": 1.204872856487165
     }
   },
-  "avg_response_time": 8.370104995997584,
+  "avg_response_time": 3.6112759340030607,
   "accuracy_rate": 1.0
 }

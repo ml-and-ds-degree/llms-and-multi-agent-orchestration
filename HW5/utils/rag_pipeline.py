@@ -42,17 +42,33 @@ class SequentialOllamaEmbeddings(Embeddings):
     more reliable embedding generation.
     """
 
-    def __init__(self, model: str = "nomic-embed-text", delay: float = 0.05):
+    def __init__(
+        self,
+        model: str = "nomic-embed-text",
+        delay: float = 0.05,
+        base_url: Optional[str] = None,
+        headers: Optional[Dict[str, str]] = None,
+    ):
         """
         Initialize sequential embeddings.
 
         Args:
             model: Name of the Ollama embedding model
             delay: Delay in seconds between embeddings (to avoid overloading)
+            base_url: Optional base URL for Ollama API
+            headers: Optional headers for Ollama API
         """
         self.model = model
         self.delay = delay
-        self.embeddings = OllamaEmbeddings(model=model)
+
+        # Prepare kwargs for OllamaEmbeddings
+        kwargs = {}
+        if base_url:
+            kwargs["base_url"] = base_url
+        if headers:
+            kwargs["headers"] = headers
+
+        self.embeddings = OllamaEmbeddings(model=model, **kwargs)
         self._failed_indices = []
 
     def embed_documents(self, texts: List[str]) -> List[List[float]]:
@@ -176,7 +192,11 @@ def summarize_chunks(chunks) -> Dict[str, float]:  # type: ignore[no-untyped-def
     return summary
 
 
-def build_embeddings(model_name: str):
+def build_embeddings(
+    model_name: str,
+    base_url: Optional[str] = None,
+    headers: Optional[Dict[str, str]] = None,
+):
     """
     Create an Ollama embeddings runnable with sequential processing.
 
@@ -185,11 +205,18 @@ def build_embeddings(model_name: str):
 
     Args:
         model_name: Name of the Ollama embedding model
+        base_url: Optional base URL for Ollama API
+        headers: Optional headers for Ollama API
 
     Returns:
         Embeddings instance that processes documents sequentially
     """
-    return SequentialOllamaEmbeddings(model=model_name, delay=0.05)
+    return SequentialOllamaEmbeddings(
+        model=model_name,
+        delay=0.05,
+        base_url=base_url,
+        headers=headers,
+    )
 
 
 def attach_contextual_metadata(
@@ -259,9 +286,18 @@ def build_vector_store(
     return vector_db, index_timer.get_elapsed(), "rebuild"
 
 
-def build_llm(model_name: str) -> ChatOllama:
+def build_llm(
+    model_name: str,
+    base_url: Optional[str] = None,
+    headers: Optional[Dict[str, str]] = None,
+) -> ChatOllama:
     """Instantiate the chat model."""
-    return ChatOllama(model=model_name)
+    kwargs = {}
+    if base_url:
+        kwargs["base_url"] = base_url
+    if headers:
+        kwargs["headers"] = headers
+    return ChatOllama(model=model_name, **kwargs)
 
 
 def build_retriever(

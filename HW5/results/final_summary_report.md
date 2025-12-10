@@ -38,14 +38,16 @@ This phase tested the system's sensitivity to model size reduction and granular 
 *   **Variation B (Aggressive Chunking):** Reducing chunk size to 300 characters (with 50 overlap) further lowered latency to **3.66 seconds**. However, this resulted in a fragmentation of the corpus into 150 micro-chunks. While accuracy remained high for this specific dataset, qualitative analysis suggests a high risk of context severance for queries spanning multiple segments.
 
 ### 3.3 Experiment 3: Deployment Strategies
-This experiment evaluated the latency implications of three deployment topologies:
-1.  **All Local:** Fully air-gapped execution.
-2.  **Hybrid:** Local embeddings/retrieval with cloud-based generation (simulated).
-3.  **Cloud:** Remote embeddings and generation (simulated).
+This experiment evaluated the latency implications of local versus cloud-based LLM deployment, using real Ollama Cloud API with a 120B parameter model:
+1.  **All Local:** Fully air-gapped execution using `llama3.2` (3B parameters).
+2.  **Hybrid Cloud:** Local embeddings/retrieval with cloud-based generation using `gpt-oss:120b-cloud` (120B parameters).
 
 **Results:**
-*   **Local & Hybrid:** Both modes exhibited similar latency profiles (~8.4 seconds), indicating that the network overhead for generation alone is manageable.
-*   **Cloud Mode:** While achieving the fastest raw response time (7.92 seconds), the lack of persistence in the cloud simulation necessitated a **6.68 second** re-indexing penalty for every execution context, rendering it inefficient for non-persistent sessions.
+*   **Cloud Superiority:** Contrary to simulated expectations, real cloud infrastructure demonstrated **2.3x faster response times** (3.61s vs 8.29s) despite using a model 40x larger than local.
+*   **Local Latency:** Average response time of **8.29 seconds** with `llama3.2` (3B).
+*   **Hybrid Cloud Latency:** Average response time of **3.61 seconds** with `gpt-oss:120b-cloud` (120B).
+*   **Accuracy:** Both configurations achieved **100% accuracy** on all test queries.
+*   **Infrastructure Impact:** The results highlight that optimized cloud infrastructure (GPU availability, model optimization) can outweigh the benefits of local deployment, even with significantly larger models.
 
 ### 3.4 Experiment 4: Advanced Retrieval Techniques
 The final phase investigated whether algorithmic enhancements could improve retrieval quality.
@@ -55,11 +57,12 @@ The final phase investigated whether algorithmic enhancements could improve retr
 
 ## 4. Discussion
 
-The data suggests that for structured, moderate-length documents like the BOI instructions, a standard RAG pipeline (Baseline) offers the optimal balance of performance and complexity.
+The data reveals several key insights about RAG pipeline optimization for structured documents like the BOI instructions:
 
-1.  **Efficiency vs. Complexity:** Advanced techniques like Contextual Retrieval and Reranking incur substantial latency costs. They should be reserved for corpora with high semantic ambiguity or when simple vector similarity fails to retrieve relevant context.
-2.  **Model Sizing:** The 1B parameter model demonstrated that "smaller is faster" holds true, and for well-defined extraction tasks, the accuracy penalty may be negligible.
-3.  **Persistence is Non-Negotiable:** Across all experiments, the ability to persist the vector index was the single largest factor in reducing cold-start latency.
+1.  **Infrastructure Over Size:** The cloud deployment results challenge conventional assumptions about model size and latency. A 120B cloud model outperformed a 3B local model by 2.3x, demonstrating that optimized infrastructure (GPU availability, parallelization, model quantization) can be more impactful than model size alone.
+2.  **Efficiency vs. Complexity:** Advanced techniques like Contextual Retrieval and Reranking incur substantial latency costs. They should be reserved for corpora with high semantic ambiguity or when simple vector similarity fails to retrieve relevant context.
+3.  **Model Sizing for Local Deployment:** The 1B parameter model demonstrated that "smaller is faster" holds true for local execution, and for well-defined extraction tasks, the accuracy penalty may be negligible.
+4.  **Persistence is Non-Negotiable:** Across all experiments, the ability to persist the vector index was the single largest factor in reducing cold-start latency.
 
 ## 5. Conclusion
 

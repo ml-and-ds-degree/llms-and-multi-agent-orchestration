@@ -2,31 +2,26 @@
 
 """Sub-experiment 3: Local Ollama vs. Cloud / Hybrid comparison.
 
-This runner executes the RAG pipeline in three modes:
+This runner executes the RAG pipeline in two modes:
 1. local  - All components on the laptop (Ollama LLM + embeddings + Chroma persistence).
-2. hybrid - Local embeddings/vector store, but LLM calls pay simulated cloud latency.
-3. cloud  - Both embeddings and LLM pay simulated cloud latency and the vector store
-             lives in memory (no persistence) to mimic ephemeral SaaS usage.
+2. hybrid - Local embeddings/vector store, but LLM calls go to Ollama Cloud (gpt-oss:120b-cloud).
 
-The "cloud" behaviour uses real Ollama computation underneath (so we can execute
-in this offline environment) while injecting deterministic latency and tracking it.
-Set the CLOUD_LLM_ENDPOINT/CLOUD_LLM_MODEL environment variables to point to a real
-cloud provider if desired; otherwise it falls back to the simulated layer.
+The "hybrid" mode uses real Ollama Cloud API.
+You MUST set OLLAMA_API_KEY environment variable for hybrid mode.
+
+Note: Cloud embeddings are not currently available on Ollama Cloud, so we only support hybrid mode.
 """
 
 from __future__ import annotations
 
 import argparse
-import asyncio
 import logging
 import os
-import random
-import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, Optional
 
-from langchain_ollama import ChatOllama
+from dotenv import load_dotenv
 from utils.rag_pipeline import (
     DEFAULT_PROMPT_TEMPLATE,
     build_chain,
@@ -41,9 +36,10 @@ from utils.rag_pipeline import (
     summarize_chunks,
 )
 
-from HW5.queries import evaluate_query_accuracy, get_all_queries, get_baseline_queries
-from HW5.utils.metrics import ExperimentMetrics, Timer, print_metrics_summary
+from queries import evaluate_query_accuracy, get_all_queries, get_baseline_queries
+from utils.metrics import ExperimentMetrics, Timer, print_metrics_summary
 
+load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
@@ -52,6 +48,7 @@ logging.basicConfig(level=logging.INFO, format="[%(levelname)s] %(message)s")
 
 DEFAULT_DOC_PATH = BASE_DIR / "data" / "BOI.pdf"
 DEFAULT_MODEL = "llama3.2"
+CLOUD_MODEL = "gpt-oss:120b-cloud"
 DEFAULT_EMBEDDING = "nomic-embed-text"
 DEFAULT_PERSIST_DIR = BASE_DIR / "results" / "chroma_baseline"
 DEFAULT_VECTOR_STORE = "rag-cloud"
@@ -76,21 +73,14 @@ MODE_PROFILES: Dict[str, ModeProfile] = {
         use_cloud_llm=False,
         use_cloud_embeddings=False,
         persist_store=True,
-        description="Ollama LLM + embeddings + persisted Chroma",
+        description="Local Ollama LLM (llama3.2) + embeddings + persisted Chroma",
     ),
     "hybrid": ModeProfile(
-        label="Hybrid",
+        label="Hybrid (Cloud)",
         use_cloud_llm=True,
         use_cloud_embeddings=False,
         persist_store=True,
-        description="Local embeddings/vector DB, cloud LLM",
-    ),
-    "cloud": ModeProfile(
-        label="Cloud",
-        use_cloud_llm=True,
-        use_cloud_embeddings=True,
-        persist_store=False,
-        description="Embeddings + LLM incur cloud latency, in-memory DB",
+        description="Local embeddings/vector DB, Cloud LLM (gpt-oss:120b-cloud)",
     ),
 }
 
@@ -109,71 +99,7 @@ class RunConfig:
     output_path: Path
     force_reindex: bool
     use_all_queries: bool
-    simulate_latency_range: Tuple[float, float]
-
-
-@dataclass
-class LatencyTracker:
-    label: str
-    calls: int = 0
-    total_latency: float = 0.0
-
-    def record(self, delay: float) -> None:
-        self.calls += 1
-        self.total_latency += delay
-
-    def to_dict(self) -> Dict[str, float]:
-        avg = self.total_latency / self.calls if self.calls else 0.0
-        return {
-            "calls": float(self.calls),
-            "total_seconds": round(self.total_latency, 3),
-            "avg_seconds": round(avg, 3),
-        }
-
-
-class SimulatedCloudEmbeddings:
-    def __init__(self, base_embeddings, tracker: LatencyTracker, latency_range):
-        self.base = base_embeddings
-        self.tracker = tracker
-        self.latency_range = latency_range
-
-    def _simulate_latency(self):
-        delay = random.uniform(*self.latency_range)
-        time.sleep(delay)
-        self.tracker.record(delay)
-
-    def embed_documents(self, texts: List[str]):
-        self._simulate_latency()
-        return self.base.embed_documents(texts)
-
-    def embed_query(self, text: str):
-        self._simulate_latency()
-        return self.base.embed_query(text)
-
-
-class SimulatedCloudLLM:
-    def __init__(self, base_llm: ChatOllama, tracker: LatencyTracker, latency_range):
-        self.base = base_llm
-        self.tracker = tracker
-        self.latency_range = latency_range
-
-    def _simulate_latency(self):
-        delay = random.uniform(*self.latency_range)
-        time.sleep(delay)
-        self.tracker.record(delay)
-
-    def invoke(self, input, **kwargs):  # noqa: A003
-        self._simulate_latency()
-        return self.base.invoke(input, **kwargs)
-
-    async def ainvoke(self, input, **kwargs):
-        delay = random.uniform(*self.latency_range)
-        await asyncio.sleep(delay)
-        self.tracker.record(delay)
-        return await self.base.ainvoke(input, **kwargs)
-
-    def __getattr__(self, name):
-        return getattr(self.base, name)
+    ollama_api_key: Optional[str]
 
 
 def parse_args() -> RunConfig:
@@ -190,14 +116,6 @@ def parse_args() -> RunConfig:
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
     parser.add_argument("--force-reindex", action="store_true")
     parser.add_argument("--all-queries", action="store_true")
-    parser.add_argument(
-        "--simulate-latency-range",
-        type=float,
-        nargs=2,
-        metavar=("MIN", "MAX"),
-        default=(0.35, 0.85),
-        help="Latency range (seconds) injected when simulating cloud calls",
-    )
 
     args = parser.parse_args()
 
@@ -226,16 +144,16 @@ def parse_args() -> RunConfig:
         output_path=output_path,
         force_reindex=args.force_reindex,
         use_all_queries=args.all_queries,
-        simulate_latency_range=(
-            args.simulate_latency_range[0],
-            args.simulate_latency_range[1],
-        ),
+        ollama_api_key=os.environ.get("OLLAMA_API_KEY"),
     )
 
 
 def run_experiment(config: RunConfig) -> ExperimentMetrics:
     profile = MODE_PROFILES[config.mode_key]
-    ensure_ollama_models([config.model_name, config.embedding_model])
+
+    # Only pull models if we are running locally (or hybrid local component)
+    if not profile.use_cloud_llm or not profile.use_cloud_embeddings:
+        ensure_ollama_models([config.model_name, config.embedding_model])
 
     with Timer() as chunk_timer:
         documents = load_documents(config.doc_path)
@@ -243,19 +161,25 @@ def run_experiment(config: RunConfig) -> ExperimentMetrics:
     chunk_stats = summarize_chunks(chunks)
     chunk_stats["chunk_time_s"] = chunk_timer.get_elapsed()
 
-    trackers: Dict[str, LatencyTracker] = {}
-    base_embeddings = build_embeddings(config.embedding_model)
-    embeddings = (
-        SimulatedCloudEmbeddings(
-            base_embeddings,
-            trackers.setdefault(
-                "embedding_latency", LatencyTracker(label="cloud_embeddings")
-            ),
-            config.simulate_latency_range,
-        )
-        if profile.use_cloud_embeddings
-        else base_embeddings
+    # Configure Cloud settings
+    cloud_base_url = "https://ollama.com" if config.ollama_api_key else None
+    cloud_headers = (
+        {"Authorization": f"Bearer {config.ollama_api_key}"}
+        if config.ollama_api_key
+        else None
     )
+
+    if profile.use_cloud_embeddings:
+        if not config.ollama_api_key:
+            raise ValueError("OLLAMA_API_KEY env var is required for cloud embeddings")
+
+        logger.info("Using REAL Cloud Embeddings (Ollama Cloud)")
+        embeddings = build_embeddings(
+            config.embedding_model, base_url=cloud_base_url, headers=cloud_headers
+        )
+    else:
+        embeddings = build_embeddings(config.embedding_model)
+
     persist_target = config.persist_dir if profile.persist_store else None
     vector_db, indexing_time, store_mode = build_vector_store(
         chunks,
@@ -264,16 +188,18 @@ def run_experiment(config: RunConfig) -> ExperimentMetrics:
         persist_target,
         config.force_reindex,
     )
-    base_llm = build_llm(config.model_name)
-    llm = (
-        SimulatedCloudLLM(
-            base_llm,
-            trackers.setdefault("llm_latency", LatencyTracker(label="cloud_llm")),
-            config.simulate_latency_range,
-        )
-        if profile.use_cloud_llm
-        else base_llm
-    )
+
+    if profile.use_cloud_llm:
+        if not config.ollama_api_key:
+            raise ValueError("OLLAMA_API_KEY env var is required for cloud LLM")
+
+        # Use the specific cloud model constant for cloud/hybrid modes
+        target_model = CLOUD_MODEL
+        logger.info("Using REAL Cloud LLM (Ollama Cloud) - Model: %s", target_model)
+        llm = build_llm(target_model, base_url=cloud_base_url, headers=cloud_headers)
+    else:
+        llm = build_llm(config.model_name)
+
     retriever = build_retriever(vector_db, retriever_k=config.retriever_k)
     chain = build_chain(
         retriever,
@@ -314,10 +240,6 @@ def run_experiment(config: RunConfig) -> ExperimentMetrics:
             "chunk_stats": chunk_stats,
             "query_set": "extended" if config.use_all_queries else "baseline",
             "latency_snapshot": latency_stats,
-            "cloud_latency": {
-                k: {"label": tracker.label, **tracker.to_dict()}
-                for k, tracker in trackers.items()
-            },
         }
     )
 

@@ -10,29 +10,29 @@
   "queries": [
     {
       "query": "How to report BOI?",
-      "response": "According to the provided context, to report Beneficial Ownership Information (BOI), you need to provide the following information for each beneficial owner and company applicant required to be reported:\n\n1. Full legal name\n2. Date of birth\n3. Complete current address\n4. Unique identifying number and issuing jurisdiction from one of the following non-expired documents:\n   - U.S. passport\n   - Identification document issued by a State, local government, or Indian Tribe for the purpose of identifying the individual\n   - State-issued driver's license\n   - Foreign passport (if none of the above are available)\n\nAdditionally, you may provide a FinCEN identifier for a beneficial owner or company applicant instead of this information.\n\nIf a previously submitted BOIR needs to be corrected or updated, it must be completed in its entirety with the necessary corrections or updates made to the information. Reporting companies must resubmit unchanged information along with the corrected or updated information.",
-      "response_time": 10.689721684000688,
+      "response": "To report beneficial ownership information to FinCEN by filing a BOIR, follow these steps:\n\n1. Review Chapter 2 of FinCEN's Small Entity Compliance Guide to learn how to identify beneficial owners.\n2. Review Chapter 3 of FinCEN's Small Entity Compliance Guide to learn about the reporting requirements for company applicants.\n3. File a BOIR (Beneficial Ownership Report) with FinCEN.\n4. If there are any changes to the required information, file an updated BOIR within 30 days of the change.\n5. If you identify an inaccuracy in your filed BOIR, correct it within 30 days of becoming aware of the inaccuracy or having reason to know of it.\n\nNote: You can find more information about reporting timelines and other details in Chapters 5 and 6 of FinCEN's Small Entity Compliance Guide.",
+      "response_time": 11.374696376995416,
       "chunks_retrieved": 3,
       "is_accurate": true
     },
     {
       "query": "What is the document about?",
-      "response": "The document appears to be a set of filing instructions for beneficial ownership information reporting, specifically for Item 31 and Item 32 in a report called \"BOI Report Filing Instructions\". The document provides guidance on how to identify a document number from the company's identifying document and how to identify the issuing jurisdiction (country or state) that issued the document.",
-      "response_time": 5.477513341000304,
+      "response": "The document appears to be a filing instruction for beneficial ownership information reports, specifically BOIR (Beneficial Ownership Information Report). It outlines the requirements and instructions for completing the report, including providing identifying document numbers, jurisdictions, and images of relevant documents.",
+      "response_time": 4.768126786017092,
       "chunks_retrieved": 3,
       "is_accurate": true
     },
     {
       "query": "What are the main points as a business owner I should be aware of?",
-      "response": "Based on the provided context, as a business owner, you should be aware of the following main points regarding beneficial ownership information reporting:\n\n1. Territory: If your company has a principal place of business in the United States or U.S. territory, you should use the street address of the principal place of business. Otherwise, you should use the primary location in the United States or U.S. territory where your company conducts business.\n2. Automatic population: If you select a U.S. territory in item 13, item 14 (Territory) will be automatically populated with the relevant U.S. territory.\n3. Existing reporting company: Check the box if your company was created or registered before January 1, 2024. This is not required for reporting companies that check this box; you should proceed to Part III.\n\nThese points are part of BOIR Item 16 and Item 14 in the provided documents.",
-      "response_time": 9.280656332004583,
+      "response": "As a business owner, you should be aware of the following main points from the provided documents:\n\n1. Reporting beneficial ownership information to FinCEN (Financial Crimes Enforcement Network) is required by the Corporate Transparency Act.\n2. You must report this information through Beneficial Ownership Information Reports (BOIRs).\n3. The reporting requirements include identifying and reporting beneficial owners, as well as company applicants in certain cases.\n4. FinCEN's website provides guidance on the beneficial ownership information reporting requirements, including interactive flowcharts, checklists, and other aids to help determine whether an entity needs to file a BOIR with FinCEN and how to comply with the reporting requirements.\n\nIt is recommended that you review FinCEN's Small Entity Compliance Guide, which covers who must report, what they must report, and when they must report. Additionally, reviewing Chapter 2 of the guide to learn more about identifying beneficial owners and Chapter 3 to learn more about company applicants may also be helpful.",
+      "response_time": 8.741514761000872,
       "chunks_retrieved": 3,
       "is_accurate": true
     }
   ],
   "metadata": {
     "mode": "All Local",
-    "description": "Ollama LLM + embeddings + persisted Chroma",
+    "description": "Local Ollama LLM (llama3.2) + embeddings + persisted Chroma",
     "vector_store_mode": "reuse",
     "chunk_stats": {
       "count": 48,
@@ -52,17 +52,16 @@
         1170,
         326
       ],
-      "chunk_time_s": 0.499838097995962
+      "chunk_time_s": 0.3153089229890611
     },
     "query_set": "baseline",
     "latency_snapshot": {
-      "min": 5.477513341000304,
-      "max": 10.689721684000688,
-      "mean": 8.482630452335192,
-      "stdev": 2.201425739708592
-    },
-    "cloud_latency": {}
+      "min": 4.768126786017092,
+      "max": 11.374696376995416,
+      "mean": 8.29477930800446,
+      "stdev": 2.7155564026343733
+    }
   },
-  "avg_response_time": 8.482630452335192,
+  "avg_response_time": 8.29477930800446,
   "accuracy_rate": 1.0
 }

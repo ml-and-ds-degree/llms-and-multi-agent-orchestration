@@ -33,8 +33,7 @@
         },
         "ghcr.io/devcontainers-extra/features/zsh-plugins": {
             "plugins": "uv"
-        },
-        "ghcr.io/devcontainers/features/docker-in-docker": {}
+        }
     },
     "runArgs": [
         "--network=host"
