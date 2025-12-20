@@ -1796,20 +1796,7 @@ name = "llms-and-multi-agent-orchestration"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
-    { name = "chromadb" },
-    { name = "langchain-chroma" },
-    { name = "langchain-community" },
-    { name = "langchain-ollama" },
-    { name = "langchain-text-splitters" },
-    { name = "matplotlib" },
     { name = "ollama" },
-    { name = "pandas" },
-    { name = "pydantic-ai" },
-    { name = "pypdf" },
-    { name = "rank-bm25" },
-    { name = "reflex" },
-    { name = "sentence-transformers" },
-    { name = "unstructured" },
 ]
 
 [package.optional-dependencies]
@@ -1821,31 +1808,64 @@ dev = [
     { name = "pytest-playwright" },
     { name = "requests" },
 ]
+hw1 = [
+    { name = "pydantic-ai" },
+    { name = "reflex" },
+]
+hw3 = [
+    { name = "matplotlib" },
+    { name = "numpy" },
+    { name = "sentence-transformers" },
+]
+hw5 = [
+    { name = "chromadb" },
+    { name = "langchain-chroma" },
+    { name = "langchain-community" },
+    { name = "langchain-ollama" },
+    { name = "langchain-text-splitters" },
+    { name = "matplotlib" },
+    { name = "pandas" },
+    { name = "pypdf" },
+    { name = "python-dotenv" },
+    { name = "rank-bm25" },
+    { name = "unstructured" },
+]
+
+[package.dev-dependencies]
+hw7 = [
+    { name = "pydantic-ai" },
+]
 
 [package.metadata]
 requires-dist = [
-    { name = "chromadb" },
-    { name = "langchain-chroma", specifier = ">=1.0.0" },
-    { name = "langchain-community", specifier = ">=0.4.1" },
-    { name = "langchain-ollama", specifier = ">=1.0.0" },
-    { name = "langchain-text-splitters", specifier = ">=1.0.0" },
-    { name = "matplotlib", specifier = ">=3.10.7" },
+    { name = "chromadb", marker = "extra == 'hw5'" },
+    { name = "langchain-chroma", marker = "extra == 'hw5'", specifier = ">=1.0.0" },
+    { name = "langchain-community", marker = "extra == 'hw5'", specifier = ">=0.4.1" },
+    { name = "langchain-ollama", marker = "extra == 'hw5'", specifier = ">=1.0.0" },
+    { name = "langchain-text-splitters", marker = "extra == 'hw5'", specifier = ">=1.0.0" },
+    { name = "matplotlib", marker = "extra == 'hw3'", specifier = ">=3.10.7" },
+    { name = "matplotlib", marker = "extra == 'hw5'", specifier = ">=3.10.7" },
+    { name = "numpy", marker = "extra == 'hw3'" },
     { name = "ollama" },
-    { name = "pandas", specifier = ">=2.3.3" },
+    { name = "pandas", marker = "extra == 'hw5'", specifier = ">=2.3.3" },
     { name = "playwright", marker = "extra == 'dev'", specifier = ">=1.40.0" },
-    { name = "pydantic-ai", specifier = ">=1.7.0" },
-    { name = "pypdf" },
+    { name = "pydantic-ai", marker = "extra == 'hw1'", specifier = ">=1.7.0" },
+    { name = "pypdf", marker = "extra == 'hw5'" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.0.0" },
     { name = "pytest-asyncio", marker = "extra == 'dev'", specifier = ">=0.23.0" },
     { name = "pytest-mock", marker = "extra == 'dev'", specifier = ">=3.12.0" },
     { name = "pytest-playwright", marker = "extra == 'dev'", specifier = ">=0.4.0" },
-    { name = "rank-bm25", specifier = ">=0.2.2" },
-    { name = "reflex", specifier = ">=0.8.17" },
+    { name = "python-dotenv", marker = "extra == 'hw5'" },
+    { name = "rank-bm25", marker = "extra == 'hw5'", specifier = ">=0.2.2" },
+    { name = "reflex", marker = "extra == 'hw1'", specifier = ">=0.8.17" },
     { name = "requests", marker = "extra == 'dev'", specifier = ">=2.31.0" },
-    { name = "sentence-transformers", specifier = ">=5.1.2" },
-    { name = "unstructured", specifier = ">=0.18.21" },
+    { name = "sentence-transformers", marker = "extra == 'hw3'", specifier = ">=5.1.2" },
+    { name = "unstructured", marker = "extra == 'hw5'", specifier = ">=0.18.21" },
 ]
-provides-extras = ["dev"]
+provides-extras = ["dev", "hw1", "hw3", "hw5"]
+
+[package.metadata.requires-dev]
+hw7 = [{ name = "pydantic-ai", specifier = ">=1.7.0" }]
 
 [[package]]
 name = "logfire"

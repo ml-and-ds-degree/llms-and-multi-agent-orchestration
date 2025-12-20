@@ -54,3 +54,8 @@ hw5 = [
     # Environment management
     "python-dotenv",
 ]
+
+[dependency-groups]
+hw7 = [
+    "pydantic-ai>=1.7.0",
+]
