@@ -17,12 +17,7 @@ if str(BASE_DIR) not in sys.path:
     sys.path.insert(0, str(BASE_DIR))
 
 from shared.schemas import StartLeague
-
-# Configuration
-LEAGUE_MANAGER_PORT: int = 8000
-REFEREE_PORT: int = 8001
-PLAYER_PORTS: list[int] = [8101, 8102, 8103, 8104]
-PLAYER_IDS: list[str] = ["P01", "P02", "P03", "P04"]
+from shared.settings import settings
 
 processes = []
 
@@ -41,6 +36,8 @@ def start_process(cmd, cwd="."):
 
 
 def shutdown_process(p: subprocess.Popen, name: str, timeout: float = 5.0):
+    if timeout is None:
+        timeout = settings.shutdown_sigint_timeout
     if p.poll() is not None:
         return
     try:
@@ -71,20 +68,20 @@ async def main():
 
     # 1. Start League Manager
     logger.info("Starting League Manager...")
-    start_process([sys.executable, "-m", "league_manager.main"], cwd="HW7")
+    start_process([sys.executable, "-m", "league_manager.main"], cwd=str(BASE_DIR))
 
     # 2. Start Referee
     logger.info("Starting Referee...")
-    start_process([sys.executable, "-m", "referee.main"], cwd="HW7")
+    start_process([sys.executable, "-m", "referee.main"], cwd=str(BASE_DIR))
 
     # 3. Start Players
-    for port, pid in zip(PLAYER_PORTS, PLAYER_IDS):
+    for port, pid in zip(settings.player_ports, settings.player_ids_list):
         logger.info("Starting Player {} on port {}...", pid, port)
-        start_process([sys.executable, "-m", "player.main", str(port), pid], cwd="HW7")
+        start_process([sys.executable, "-m", "player.main", str(port), pid], cwd=str(BASE_DIR))
 
     # 4. Wait for startup
-    logger.info("Waiting for agents to initialize (5s)...")
-    await asyncio.sleep(5)
+    logger.info("Waiting for agents to initialize ({}s)...", settings.startup_wait_time)
+    await asyncio.sleep(settings.startup_wait_time)
 
     # 5. Start League
     logger.info("Sending START_LEAGUE command...")
@@ -92,13 +89,13 @@ async def main():
         sender="launcher",
         timestamp=arrow.utcnow().datetime,
         conversation_id=str(uuid.uuid4()),
-        league_id="league_2025_even_odd",
+        league_id=settings.league_id,
     )
 
     async with httpx.AsyncClient() as client:
         try:
             resp = await client.post(
-                f"http://localhost:{LEAGUE_MANAGER_PORT}/mcp",
+                settings.league_manager_url,
                 json=msg.model_dump(mode="json"),
             )
             logger.success("League Started: {}", resp.json())
@@ -119,7 +116,7 @@ async def main():
         ]
         # Players
         for i in range(2, len(processes)):
-            names.append((processes[i], f"Player {PLAYER_IDS[i - 2]}"))
+            names.append((processes[i], f"Player {settings.player_ids_list[i - 2]}"))
 
         for p, name in names:
             if p is not None:

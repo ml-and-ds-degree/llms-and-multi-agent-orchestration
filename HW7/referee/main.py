@@ -26,13 +26,11 @@ from shared.schemas import (
     RefereeRegisterRequest,
     RoundAnnouncement,
 )
+from shared.settings import settings
 
-REF_ID = "REF01"
-LEAGUE_MANAGER_URL = "http://localhost:8000/mcp"
-CONTACT_ENDPOINT = "http://localhost:8001/mcp"
 matches_queue: asyncio.Queue = asyncio.Queue()
 player_endpoints: Dict[str, str] = {}  # Cache for player endpoints
-league_id: Optional[str] = "league_2025_even_odd"
+league_id: Optional[str] = settings.league_id
 
 
 async def get_player_endpoint(player_id: str) -> Optional[str]:
@@ -40,7 +38,7 @@ async def get_player_endpoint(player_id: str) -> Optional[str]:
         return player_endpoints[player_id]
 
     query = LeagueQuery(
-        sender=f"referee:{REF_ID}",
+        sender=f"referee:{settings.referee_id}",
         timestamp=arrow.utcnow().datetime,
         conversation_id=str(uuid.uuid4()),
         auth_token="simulated_token",
@@ -51,7 +49,7 @@ async def get_player_endpoint(player_id: str) -> Optional[str]:
     async with httpx.AsyncClient() as client:
         try:
             resp = await client.post(
-                LEAGUE_MANAGER_URL, json=query.model_dump(mode="json")
+                settings.league_manager_url, json=query.model_dump(mode="json")
             )
             if resp.status_code == 200:
                 data = resp.json()
@@ -81,7 +79,7 @@ async def run_match(match: MatchInfo, round_id: int):
 
     async with httpx.AsyncClient() as client:
         invitation_A = GameInvitation(
-            sender=f"referee:{REF_ID}",
+            sender=f"referee:{settings.referee_id}",
             timestamp=arrow.utcnow().datetime,
             conversation_id=str(uuid.uuid4()),
             league_id=league_id or "unknown",
@@ -92,7 +90,7 @@ async def run_match(match: MatchInfo, round_id: int):
             opponent_id=match.player_B_id,
         )
         invitation_B = GameInvitation(
-            sender=f"referee:{REF_ID}",
+            sender=f"referee:{settings.referee_id}",
             timestamp=arrow.utcnow().datetime,
             conversation_id=str(uuid.uuid4()),
             league_id=league_id or "unknown",
@@ -126,13 +124,15 @@ async def run_match(match: MatchInfo, round_id: int):
             )
             return
 
-        drawn_number = random.randint(0, 100)
+        drawn_number = random.randint(
+            settings.random_number_min, settings.random_number_max
+        )
         parity = "even" if drawn_number % 2 == 0 else "odd"
 
-        deadline = arrow.utcnow().shift(seconds=30).datetime
+        deadline = arrow.utcnow().shift(seconds=settings.parity_choice_timeout).datetime
 
         call_A = ChooseParityCall(
-            sender=f"referee:{REF_ID}",
+            sender=f"referee:{settings.referee_id}",
             timestamp=arrow.utcnow().datetime,
             conversation_id=str(uuid.uuid4()),
             match_id=match.match_id,
@@ -142,7 +142,7 @@ async def run_match(match: MatchInfo, round_id: int):
             deadline=deadline,
         )
         call_B = ChooseParityCall(
-            sender=f"referee:{REF_ID}",
+            sender=f"referee:{settings.referee_id}",
             timestamp=arrow.utcnow().datetime,
             conversation_id=str(uuid.uuid4()),
             match_id=match.match_id,
@@ -217,7 +217,7 @@ async def run_match(match: MatchInfo, round_id: int):
         )
 
         game_over = GameOver(
-            sender=f"referee:{REF_ID}",
+            sender=f"referee:{settings.referee_id}",
             timestamp=arrow.utcnow().datetime,
             conversation_id=str(uuid.uuid4()),
             match_id=match.match_id,
@@ -233,7 +233,7 @@ async def run_match(match: MatchInfo, round_id: int):
         )
 
         report = MatchResultReport(
-            sender=f"referee:{REF_ID}",
+            sender=f"referee:{settings.referee_id}",
             timestamp=arrow.utcnow().datetime,
             conversation_id=str(uuid.uuid4()),
             league_id=league_id or "unknown",
@@ -262,7 +262,9 @@ async def run_match(match: MatchInfo, round_id: int):
             report.result.score[match.player_A_id] = 1
             report.result.score[match.player_B_id] = 1
 
-        await client.post(LEAGUE_MANAGER_URL, json=report.model_dump(mode="json"))
+        await client.post(
+            settings.league_manager_url, json=report.model_dump(mode="json")
+        )
 
 
 async def process_queue():
@@ -275,21 +277,23 @@ async def process_queue():
 
 async def register_referee():
     req = RefereeRegisterRequest(
-        sender=f"referee:{REF_ID}",
+        sender=f"referee:{settings.referee_id}",
         timestamp=arrow.utcnow().datetime,
         conversation_id=str(uuid.uuid4()),
         referee_meta=RefereeMeta(
-            display_name="Referee Alpha",
-            version="1.0.0",
-            game_types=["even_odd"],
-            contact_endpoint=CONTACT_ENDPOINT,
-            max_concurrent_matches=10,
+            display_name=settings.referee_display_name,
+            version=settings.referee_version,
+            game_types=[settings.game_type],
+            contact_endpoint=settings.referee_contact_endpoint,
+            max_concurrent_matches=settings.referee_max_concurrent_matches,
         ),
     )
 
     async with httpx.AsyncClient() as client:
         try:
-            await client.post(LEAGUE_MANAGER_URL, json=req.model_dump(mode="json"))
+            await client.post(
+                settings.league_manager_url, json=req.model_dump(mode="json")
+            )
             logger.success("Referee Registered")
         except Exception as e:
             logger.error("Referee Registration Failed: {}", e)
@@ -315,7 +319,7 @@ async def mcp_endpoint(payload: dict):
         league_id = announcement.league_id
 
         for m in announcement.matches:
-            if m.referee_endpoint == CONTACT_ENDPOINT:
+            if m.referee_endpoint == settings.referee_contact_endpoint:
                 await matches_queue.put((m, announcement.round_id))
 
         return {"status": "received"}
@@ -324,4 +328,4 @@ async def mcp_endpoint(payload: dict):
 
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8001)
+    uvicorn.run(app, host=settings.referee_host, port=settings.referee_port)

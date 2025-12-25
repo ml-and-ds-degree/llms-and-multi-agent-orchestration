@@ -27,11 +27,11 @@ from shared.schemas import (
     StandingEntry,
     StartLeague,
 )
+from shared.settings import settings
 
 app = FastAPI(title="League Manager")
 
 # --- State ---
-LEAGUE_ID = "league_2025_even_odd"
 players: Dict[str, LeagueRegisterRequest] = {}
 referee: Optional[RefereeRegisterRequest] = None
 referee_id: Optional[str] = None
@@ -97,7 +97,7 @@ async def run_round():
         sender="league_manager",
         timestamp=arrow.utcnow().datetime,
         conversation_id=str(uuid.uuid4()),
-        league_id=LEAGUE_ID,
+        league_id=settings.league_id,
         round_id=current_round_index + 1,
         matches=round_matches,
     )
@@ -181,7 +181,7 @@ async def finish_round():
         sender="league_manager",
         timestamp=arrow.utcnow().datetime,
         conversation_id=str(uuid.uuid4()),
-        league_id=LEAGUE_ID,
+        league_id=settings.league_id,
         round_id=current_round_index + 1,
         matches_completed=len(round_matches),
         next_round_id=current_round_index + 2
@@ -203,7 +203,7 @@ async def finish_round():
         sender="league_manager",
         timestamp=arrow.utcnow().datetime,
         conversation_id=str(uuid.uuid4()),
-        league_id=LEAGUE_ID,
+        league_id=settings.league_id,
         round_id=current_round_index + 1,
         standings=sorted_standings,
     )
@@ -232,7 +232,7 @@ async def finish_league():
         sender="league_manager",
         timestamp=arrow.utcnow().datetime,
         conversation_id=str(uuid.uuid4()),
-        league_id=LEAGUE_ID,
+        league_id=settings.league_id,
         total_rounds=len(matches_schedule),
         total_matches=sum(len(r) for r in matches_schedule),
         champion=champion,
@@ -299,7 +299,7 @@ async def mcp_endpoint(payload: dict, background_tasks: BackgroundTasks):
             sender="league_manager",
             timestamp=arrow.utcnow().datetime,
             conversation_id=req.conversation_id,
-            league_id=LEAGUE_ID,
+            league_id=settings.league_id,
             status=league_status,
             current_round=current_round_index + 1,
             total_rounds=len(matches_schedule),
@@ -354,4 +354,6 @@ async def mcp_endpoint(payload: dict, background_tasks: BackgroundTasks):
 
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(
+        app, host=settings.league_manager_host, port=settings.league_manager_port
+    )

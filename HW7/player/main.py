@@ -18,6 +18,7 @@ from shared.schemas import (
     LeagueRegisterRequest,
     PlayerMeta,
 )
+from shared.settings import settings
 
 # Get port and ID from args
 # Usage: python main.py <PORT> <PLAYER_ID>
@@ -28,7 +29,6 @@ if len(sys.argv) < 3:
 PORT = int(sys.argv[1])
 PLAYER_ID = sys.argv[2]  # e.g. P01
 ENDPOINT = f"http://localhost:{PORT}/mcp"
-LEAGUE_MANAGER_URL = "http://localhost:8000/mcp"
 
 
 @asynccontextmanager
@@ -42,15 +42,17 @@ async def lifespan(app: FastAPI):
         conversation_id=str(uuid.uuid4()),
         player_meta=PlayerMeta(
             display_name=f"Agent {PLAYER_ID}",
-            version="1.0.0",
-            game_types=["even_odd"],
+            version=settings.player_version,
+            game_types=[settings.game_type],
             contact_endpoint=ENDPOINT,
         ),
     )
 
     async with httpx.AsyncClient() as client:
         try:
-            await client.post(LEAGUE_MANAGER_URL, json=req.model_dump(mode="json"))
+            await client.post(
+                settings.league_manager_url, json=req.model_dump(mode="json")
+            )
             logger.success("Player {} Registered", PLAYER_ID)
         except Exception as e:
             logger.error("Player {} Registration Failed: {}", PLAYER_ID, e)
@@ -101,4 +103,4 @@ async def mcp_endpoint(payload: dict):
 
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=PORT)
+    uvicorn.run(app, host=settings.player_host, port=PORT)
