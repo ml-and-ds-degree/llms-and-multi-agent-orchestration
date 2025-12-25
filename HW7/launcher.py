@@ -77,7 +77,9 @@ async def main():
     # 3. Start Players
     for port, pid in zip(settings.player_ports, settings.player_ids_list):
         logger.info("Starting Player {} on port {}...", pid, port)
-        start_process([sys.executable, "-m", "player.main", str(port), pid], cwd=str(BASE_DIR))
+        start_process(
+            [sys.executable, "-m", "player.main", str(port), pid], cwd=str(BASE_DIR)
+        )
 
     # 4. Wait for startup
     logger.info("Waiting for agents to initialize ({}s)...", settings.startup_wait_time)
