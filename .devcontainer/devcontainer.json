@@ -22,7 +22,8 @@
                 "tamasfe.even-better-toml",
                 "christian-kohler.path-intellisense",
                 "seatonjiang.gitmoji-vscode",
-                "bierner.markdown-mermaid"
+                "bierner.markdown-mermaid",
+                "astral-sh.ty"
             ]
         }
     },
