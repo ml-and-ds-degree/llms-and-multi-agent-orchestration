@@ -47,6 +47,7 @@
     "postCreateCommand": {
         "installPython": "uv python install 3.13",
         "installReflexTool": "uv tool install reflex",
+        "installPreCommit": "uv tool install pre-commit",
         "installSpecKit": "uv tool install specify-cli --from git+https://github.com/github/spec-kit.git",
         "setupNodeSymlink": "ln -sf /root/.bun/bin/bun /usr/bin/node",
         "installCodex": "bun install -g @openai/codex",
