@@ -1,8 +1,18 @@
+import os
 import sys
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from deepfake_detector import (
+
+# Ensure correctness of imports regardless of where pytest is run
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(current_dir)
+if parent_dir not in sys.path:
+    sys.path.append(parent_dir)
+
+from pydantic import ValidationError
+
+from HW9.deepfake_detector import (
     DetectionOutput,
     JudgeOutput,
     extract_frames_as_jpegs,
@@ -12,7 +22,6 @@ from deepfake_detector import (
     openai_detector,
     run_detection_pipeline,
 )
-from pydantic import ValidationError
 
 
 # ---------------------------------------------------------------------

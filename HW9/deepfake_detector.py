@@ -32,15 +32,26 @@ Notes:
     - GPT-5.2 and Qwen 3 VL receive extracted frames (image analysis).
 """
 
+import argparse
 import asyncio
 import mimetypes
 import os
+import sys
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, List, Literal, Optional
 
+from loguru import logger
 from pydantic import BaseModel, Field
 from pydantic_ai import Agent, BinaryContent
+
+# ---------------------------------------------------------------------
+# Logging Configuration
+# ---------------------------------------------------------------------
+# Loguru is pre-configured to output to stderr with nice formatting.
+# If you want to force stdout or customize:
+# logger.remove()
+# logger.add(sys.stdout, format="{time} {level} {message}", level="INFO")
 
 # ---------------------------------------------------------------------
 # Configuration: model identifiers (override via environment variables)
@@ -52,8 +63,8 @@ from pydantic_ai import Agent, BinaryContent
 GEMINI_MODEL = os.getenv(
     "GEMINI_MODEL", "gemini-3-pro-preview"
 )  # Replaces Gemini 2.0 Flash
-OPENAI_MODEL = os.getenv("OPENAI_MODEL", "openai:gpt-5.2")  # Replaces GPT-4o
-OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "ollama:qwen3-vl")  # Replaces Llama 3.2 Vision
+OPENAI_MODEL = os.getenv("OPENAI_MODEL", "openai:gpt-5.2")
+OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "ollama:qwen3-vl")
 JUDGE_MODEL = os.getenv(
     "JUDGE_MODEL", "openai:gpt-5.2"
 )  # Best for reasoning/aggregation
@@ -163,35 +174,54 @@ JUDGE_SYSTEM_PROMPT = (
 )
 
 # ---------------------------------------------------------------------
-# Build agents
+# Build agents (Lazy initialization to allow import without env vars)
 # ---------------------------------------------------------------------
-gemini_detector = Agent(
-    GEMINI_MODEL,
-    deps_type=EmptyDeps,
-    result_type=DetectionOutput,
-    system_prompt=GEMINI_SYSTEM_PROMPT,
-)
+_agents_cache = {}
 
-openai_detector = Agent(
-    OPENAI_MODEL,
-    deps_type=EmptyDeps,
-    result_type=DetectionOutput,
-    system_prompt=OPENAI_SYSTEM_PROMPT,
-)
 
-ollama_detector = Agent(
-    OLLAMA_MODEL,
-    deps_type=EmptyDeps,
-    result_type=DetectionOutput,
-    system_prompt=OLLAMA_SYSTEM_PROMPT,
-)
+def get_agents():
+    if _agents_cache:
+        return (
+            _agents_cache["gemini"],
+            _agents_cache["openai"],
+            _agents_cache["ollama"],
+            _agents_cache["judge"],
+        )
 
-judge_agent = Agent(
-    JUDGE_MODEL,
-    deps_type=EmptyDeps,
-    result_type=JudgeOutput,
-    system_prompt=JUDGE_SYSTEM_PROMPT,
-)
+    gemini_detector = Agent(
+        GEMINI_MODEL,
+        deps_type=EmptyDeps,
+        result_type=DetectionOutput,
+        system_prompt=GEMINI_SYSTEM_PROMPT,
+    )
+
+    openai_detector = Agent(
+        OPENAI_MODEL,
+        deps_type=EmptyDeps,
+        result_type=DetectionOutput,
+        system_prompt=OPENAI_SYSTEM_PROMPT,
+    )
+
+    ollama_detector = Agent(
+        OLLAMA_MODEL,
+        deps_type=EmptyDeps,
+        result_type=DetectionOutput,
+        system_prompt=OLLAMA_SYSTEM_PROMPT,
+    )
+
+    judge_agent = Agent(
+        JUDGE_MODEL,
+        deps_type=EmptyDeps,
+        result_type=JudgeOutput,
+        system_prompt=JUDGE_SYSTEM_PROMPT,
+    )
+
+    _agents_cache["gemini"] = gemini_detector
+    _agents_cache["openai"] = openai_detector
+    _agents_cache["ollama"] = ollama_detector
+    _agents_cache["judge"] = judge_agent
+
+    return gemini_detector, openai_detector, ollama_detector, judge_agent
 
 
 # ---------------------------------------------------------------------
@@ -274,6 +304,8 @@ async def run_detection_pipeline(video_input: str) -> JudgeOutput:
     Returns:
         JudgeOutput with final verdict and analysis
     """
+    gemini_detector, openai_detector, ollama_detector, judge_agent = get_agents()
+
     prompt_text = build_detector_prompt()
 
     # Determine if input is a local video file path
@@ -301,14 +333,16 @@ async def run_detection_pipeline(video_input: str) -> JudgeOutput:
     if is_video_file:
         try:
             # Extract frames once for both agents
-            print(f"Extracting frames from {video_input}...")
+            logger.info(f"Extracting frames from {video_input}...")
             frames = extract_frames_as_jpegs(
                 video_input, max_frames=10, resize_width=512
             )
-            print(f"Extracted {len(frames)} frames")
+            logger.info(f"Extracted {len(frames)} frames")
             frame_content = [prompt_text, *frames]
         except Exception as e:
-            print(f"Frame extraction failed: {e}. Falling back to text prompt.")
+            logger.opt(exception=True).warning(
+                f"Frame extraction failed: {e}. Falling back to text prompt."
+            )
             frame_content = (
                 prompt_text
                 + f"\n\n(Video file provided but frame extraction failed: {video_input})"
@@ -320,11 +354,28 @@ async def run_detection_pipeline(video_input: str) -> JudgeOutput:
     tasks.append(ollama_detector.run(frame_content, deps=None))
 
     # Await all three
-    print("Running detection agents in parallel...")
-    results = await asyncio.gather(*tasks)
+    logger.info(
+        f"Running detection agents in parallel for input: {video_input[:50]}..."
+    )
+    try:
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+    except Exception as e:
+        logger.error(f"Critical error during parallel execution: {e}")
+        raise
 
     # Extract validated outputs (DetectionOutput instances)
-    detections: List[DetectionOutput] = [res.data for res in results]
+    detections: List[DetectionOutput] = []
+    for i, res in enumerate(results):
+        if isinstance(res, Exception):
+            logger.error(f"Agent {i} failed: {res}")
+            # Optionally append a placeholder failure result or skip
+            continue
+        if hasattr(res, "data"):
+            detections.append(res.data)
+
+    if not detections:
+        logger.error("All detection agents failed.")
+        raise RuntimeError("All detection agents failed to produce results.")
 
     # Prepare the judge prompt: provide the three structured detection outputs as JSON text
     details_text = "\n\n".join([d.model_dump_json(indent=2) for d in detections])
@@ -336,7 +387,7 @@ async def run_detection_pipeline(video_input: str) -> JudgeOutput:
         "Produce JSON exactly matching the JudgeOutput model."
     )
 
-    print("Consulting judge agent...")
+    logger.info("Consulting judge agent...")
     judge_result = await judge_agent.run(judge_prompt, deps=None)
     return judge_result.data
 
@@ -350,71 +401,57 @@ def run_detection_pipeline_sync(video_input: str) -> JudgeOutput:
 
 
 # ---------------------------------------------------------------------
-# CLI / demo main
+# CLI / Main Execution
 # ---------------------------------------------------------------------
-async def main_async_demo():
-    # Example inputs: replace with real video file path or detailed description
-    demo_video_description = (
-        "Short video: A 20-second interview clip of a public figure speaking. "
-        "Observations: occasional lip-sync misalignment in 00:06-00:08, slight flicker on the jawline at 00:04, "
-        "shadows look slightly inconsistent on the right side, audio seems clean. Frame-by-frame, "
-        "there is an unnatural blink pattern (two fast blinks at 00:10)."
+async def main():
+    parser = argparse.ArgumentParser(
+        description="Deepfake Detection System (Multi-Agent)",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
+    parser.add_argument(
+        "input",
+        nargs="?",
+        default="video.mp4",
+        help="Path to video file or text description of the video.",
+    )
+    args = parser.parse_args()
 
-    print("=" * 80)
-    print("DEEPFAKE DETECTION SYSTEM")
-    print("=" * 80)
-    print("\nModels:")
-    print(f"  - Gemini: {GEMINI_MODEL} (Latest: December 2025)")
-    print(f"  - OpenAI: {OPENAI_MODEL} (Current flagship)")
-    print(f"  - Ollama: {OLLAMA_MODEL} (Latest open-source multimodal)")
-    print(f"  - Judge: {JUDGE_MODEL}")
-    print("\n" + "=" * 80)
+    # If input is default "video.mp4" but file doesn't exist, warn user or fall back to demo text
+    video_input = args.input
+    if video_input == "video.mp4" and not os.path.exists(video_input):
+        logger.warning(
+            f"Default input '{video_input}' not found. Switching to demo text description."
+        )
+        video_input = (
+            "Short video: A 20-second interview clip of a public figure speaking. "
+            "Observations: occasional lip-sync misalignment in 00:06-00:08, slight flicker on the jawline at 00:04, "
+            "shadows look slightly inconsistent on the right side, audio seems clean. Frame-by-frame, "
+            "there is an unnatural blink pattern (two fast blinks at 00:10)."
+        )
+
+    logger.info("=" * 80)
+    logger.info("DEEPFAKE DETECTION SYSTEM STARTING")
+    logger.info("=" * 80)
+    logger.info(f"Gemini Model: {GEMINI_MODEL}")
+    logger.info(f"OpenAI Model: {OPENAI_MODEL}")
+    logger.info(f"Ollama Model: {OLLAMA_MODEL}")
+    logger.info(f"Judge Model:  {JUDGE_MODEL}")
+    logger.info("-" * 80)
 
     try:
-        judge_output = await run_detection_pipeline(demo_video_description)
-        print("\n" + "=" * 80)
-        print("FINAL JUDGE OUTPUT")
-        print("=" * 80)
+        judge_output = await run_detection_pipeline(video_input)
+        logger.info("=" * 80)
+        logger.info("FINAL JUDGE OUTPUT")
+        logger.info("=" * 80)
         print(judge_output.model_dump_json(indent=2))
     except Exception as e:
-        print(f"\n❌ Error running pipeline: {e}")
-        import traceback
-
-        traceback.print_exc()
+        logger.opt(exception=True).critical(f"Pipeline failed: {e}")
+        sys.exit(1)
 
 
-def main_sync_demo():
-    demo_video_description = (
-        "Short video: A 20-second interview clip of a public figure speaking. "
-        "Observations: occasional lip-sync misalignment in 00:06-00:08, slight flicker on the jawline at 00:04, "
-        "shadows look slightly inconsistent on the right side, audio seems clean. Frame-by-frame, "
-        "there is an unnatural blink pattern (two fast blinks at 00:10)."
-    )
-
-    print("=" * 80)
-    print("DEEPFAKE DETECTION SYSTEM (Sync Mode)")
-    print("=" * 80)
-
-    try:
-        judge_output = run_detection_pipeline_sync(demo_video_description)
-        print("\n" + "=" * 80)
-        print("FINAL JUDGE OUTPUT")
-        print("=" * 80)
-        print(judge_output.model_dump_json(indent=2))
-    except Exception as e:
-        print(f"\n❌ Error running pipeline: {e}")
-        import traceback
-
-        traceback.print_exc()
-
-
-# ---------------------------------------------------------------------
-# If run as a script, execute the async demo
-# ---------------------------------------------------------------------
 if __name__ == "__main__":
-    # Choose async run (recommended)
-    asyncio.run(main_async_demo())
-
-    # Alternatively, you can run the synchronous demo:
-    # main_sync_demo()
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        logger.info("Process interrupted by user.")
+        sys.exit(130)
