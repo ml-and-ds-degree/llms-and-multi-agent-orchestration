@@ -1,0 +1,16 @@
+name: Ruff
+on: [pull_request]
+jobs:
+  ruff:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/ruff-action@v3
+        with:
+          # Use the same version as in .pre-commit-config.yaml
+          version: "0.8.4"
+          args: "check --output-format=github"
+      - uses: astral-sh/ruff-action@v3
+        with:
+          version: "0.8.4"
+          args: "format --check"
