@@ -1,0 +1,58 @@
+================================================================================
+DEEPFAKE DETECTION SYSTEM
+================================================================================
+
+Models:
+  - Gemini: gemini-3-pro-preview (Latest: December 2025)
+  - OpenAI: openai:gpt-5.2 (Current flagship)
+  - Ollama: ollama:qwen3-vl (Latest open-source multimodal)
+  - Judge: openai:gpt-5.2
+
+Extracting frames from inputs/suspicious_interview.mp4...
+Extracted 10 frames
+Running detection agents in parallel...
+Consulting judge agent...
+
+================================================================================
+FINAL JUDGE OUTPUT
+================================================================================
+{
+  "final_verdict": "Deepfake",
+  "summary": "The council has reached a unanimous decision that the analyzed video is a Deepfake. Gemini 3 Pro identified distinct temporal anomalies and lip-sync issues (approx. 200ms delay). GPT-5.2 detected spatial inconsistencies in lighting shadows across frames 4-7. Qwen 3 VL confirmed pixel-level blending artifacts around the jawline. The high average confidence (0.93) supports a definitive Deepfake classification.",
+  "votes": {
+    "Deepfake": 3,
+    "Real": 0
+  },
+  "details": [
+    {
+      "agent_name": "Gemini-3-Pro",
+      "verdict": "Deepfake",
+      "confidence": 0.96,
+      "reasons": [
+        "Detected 150ms audio-visual desynchronization during rapid speech segments.",
+        "Unnatural lack of micro-expressions in the upper face while talking.",
+        "Temporal flickering observed in the background texture at timestamp 00:04."
+      ]
+    },
+    {
+      "agent_name": "GPT-5.2",
+      "verdict": "Deepfake",
+      "confidence": 0.94,
+      "reasons": [
+        "Inconsistent shadow direction on the subject's neck compared to the background lighting source.",
+        "Earrings disappear and reappear between Frame 3 and Frame 4.",
+        "Hair strands dissolve into the background in a manner typical of diffusion model upscaling."
+      ]
+    },
+    {
+      "agent_name": "Qwen-3-VL",
+      "verdict": "Deepfake",
+      "confidence": 0.89,
+      "reasons": [
+        "Digital artifacts and blurring detected at the boundary between the chin and neck.",
+        "Eye reflections (specular highlights) are asymmetrical and physically impossible.",
+        "Skin texture appears overly smooth (wax-like) lacking natural pores in high-frequency domains."
+      ]
+    }
+  ]
+}

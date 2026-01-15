@@ -66,3 +66,14 @@ hw7 = [
     "pytest-asyncio>=1.2.0",
     "uvicorn>=0.38.0",
 ]
+
+hw9 = [
+    "pydantic-ai>=1.7.0",
+    "loguru>=0.7.3",
+    "pydantic-settings>=2.11.0",
+    "pytest>=8.4.2",
+    "pytest-asyncio>=1.2.0",
+    "transformers[torch]",
+    "pillow",
+    "torchvision",
+]
